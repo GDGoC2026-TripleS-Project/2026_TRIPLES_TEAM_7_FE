@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f2f2f2;
   --foreground: #171717;
 }
 
@@ -10,6 +10,35 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Primary */
+  --color-main: #281d21;
+
+  /* Secondary */
+  --color-sub-red: #ff6b6b;
+  --color-sub-yellow: #fdd75e;
+  --color-sub-orange: #ffb730;
+  --color-sub-green: #00c9a7;
+  --color-sub-skyblue: #aac4f0;
+  --color-sub-blue: #2c599d;
+  --color-sub-purple: #6f47ff;
+
+  /* System */
+  --color-error-red: #ff5454;
+
+  /* Gray_scale */
+  --color-white: #ffffff;
+  --color-gray-50: #f5f5f5;
+  --color-gray-100: #ebebeb;
+  --color-gray-200: #dddddd;
+  --color-gray-300: #c2c2c2;
+  --color-gray-400: #aeaeae;
+  --color-gray-500: #848484;
+  --color-gray-600: #6d6d6d;
+  --color-gray-700: #4b4b4b;
+  --color-gray-800: #2f2f2f;
+  --color-gray-900: #151515;
+  --color-black: #000000;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +52,14 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.bg-dots {
+  background-color: #f2f2f2;
+  background-image: radial-gradient(
+    circle,
+    var(--color-gray-300) 1px,
+    transparent 1px
+  );
+  background-size: 24px 18px;
 }
