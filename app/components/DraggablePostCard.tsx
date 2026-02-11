@@ -1,17 +1,15 @@
-// app/components/DraggableJobCard.tsx
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import JobPostCard, { JobPostCardData } from "./PostCard";
 
 type Props = {
   id: string;
   x: number;
   y: number;
-
   data: JobPostCardData;
 
-  getScale: () => number;
+  scale: number;
   setGesturesBlocked: (v: boolean) => void;
 
   onMove: (id: string, nextX: number, nextY: number) => void;
@@ -23,12 +21,12 @@ export default function DraggableJobCard({
   x,
   y,
   data,
-  getScale,
+  scale,
   setGesturesBlocked,
   onMove,
   onClick,
 }: Props) {
-  const draggingRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const movedRef = useRef(false);
 
@@ -39,7 +37,7 @@ export default function DraggableJobCard({
         position: "absolute",
         left: x,
         top: y,
-        cursor: draggingRef.current ? "grabbing" : "grab",
+        cursor: isDragging ? "grabbing" : "grab",
         userSelect: "none",
         touchAction: "none",
       }}
@@ -48,28 +46,27 @@ export default function DraggableJobCard({
         e.preventDefault();
 
         (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
-        draggingRef.current = true;
+        setIsDragging(true);
         movedRef.current = false;
         startRef.current = { x: e.clientX, y: e.clientY };
 
         setGesturesBlocked(true);
       }}
       onPointerMove={(e) => {
-        if (!draggingRef.current) return;
+        if (!isDragging) return;
         e.preventDefault();
 
         const s = startRef.current;
         if (s) {
           const dx = Math.abs(e.clientX - s.x);
           const dy = Math.abs(e.clientY - s.y);
-          if (dx + dy > 4) movedRef.current = true; // ✅ 클릭/드래그 구분
+          if (dx + dy > 4) movedRef.current = true;
         }
 
-        const scale = getScale();
         onMove(id, x + e.movementX / scale, y + e.movementY / scale);
       }}
       onPointerUp={(e) => {
-        draggingRef.current = false;
+        setIsDragging(false);
         setGesturesBlocked(false);
 
         try {
@@ -78,11 +75,10 @@ export default function DraggableJobCard({
           );
         } catch {}
 
-        // ✅ “움직이지 않았다면” 클릭으로 간주해서 상세창 오픈
         if (!movedRef.current) onClick?.(id);
       }}
       onPointerCancel={() => {
-        draggingRef.current = false;
+        setIsDragging(false);
         setGesturesBlocked(false);
       }}
     >

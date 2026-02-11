@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from "react";
 
-import Card from "@/app/components/Card";
 import InfiniteCanvas from "@/app/components/InfiniteCanvas";
 import CanvasHeader from "@/app/components/CanvasHeader";
 import CanvasSidebar from "@/app/components/CanvasSidebar";
-import JobPostCard, { JobPostCardData } from "@/app/components/PostCard";
+import { JobPostCardData } from "@/app/components/PostCard";
 import DraggableJobCard from "@/app/components/DraggablePostCard";
 import JobPostDetailDrawer from "@/app/components/JobPostDetailDrawer";
 
@@ -22,7 +21,7 @@ type BoardCard = {
 
 export default function CanvasPage() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
-  const [activeSide, setActiveSide] = useState<SideId>("link");
+  const [activeSide, setActiveSide] = useState<SideId | null>("link");
 
   const [cards, setCards] = useState<BoardCard[]>([
     {
@@ -98,7 +97,7 @@ export default function CanvasPage() {
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <InfiniteCanvas backgroundClassName="bg-dots">
-        {({ getScale, setGesturesBlocked }) => (
+        {({ scale, setGesturesBlocked }) => (
           <>
             {cards.map((c) => (
               <DraggableJobCard
@@ -107,7 +106,7 @@ export default function CanvasPage() {
                 x={c.x}
                 y={c.y}
                 data={c.data}
-                getScale={getScale}
+                scale={scale}
                 setGesturesBlocked={setGesturesBlocked}
                 onMove={(id, nextX, nextY) => {
                   setCards((prev) =>

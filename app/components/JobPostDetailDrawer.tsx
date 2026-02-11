@@ -24,7 +24,6 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
   const meta = job?.meta ?? "";
   const bullets = job?.bullets ?? [];
 
-  // 조건(필수/우대/경력)은 일단 예시로 박아둠 (너가 나중에 데이터 붙이면 됨)
   const conditions = useMemo(() => {
     if (!job) return null;
     return {
@@ -110,7 +109,7 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
               {/* Top badges */}
               <div className="flex items-start justify-between gap-4">
                 <DdayBadge
-                  daysLeft={(job as any).dday ?? 0}
+                  daysLeft={job.dday ?? 0}
                   className="h-8 px-4 text-[16px] font-bold"
                 />
 
@@ -138,7 +137,12 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
 
               {/* AI 분석 */}
               <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-500">
-                <Image src="/icons/ai.svg" alt="ai" width={16} height={16} />
+                <Image
+                  src="/icons/des_ai.svg"
+                  alt="ai"
+                  width={16}
+                  height={16}
+                />
                 <span>AI 분석</span>
               </div>
               <div className="mt-3 space-y-1 text-[15px] text-gray-800">
@@ -159,7 +163,7 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
               <div className="mt-4 space-y-4">
                 {/* 필수 */}
                 <ConditionRow
-                  iconSrc="/icons/required.svg"
+                  iconSrc="/icons/need.svg"
                   label="필수"
                   chips={(
                     conditions?.required ?? ["Java", "Spring", "RDB 경험"]
@@ -170,7 +174,7 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
                 />
                 {/* 우대 */}
                 <ConditionRow
-                  iconSrc="/icons/preferred.svg"
+                  iconSrc="/icons/treatment.svg"
                   label="우대"
                   chips={(
                     conditions?.preferred ?? ["Java", "Spring", "RDB 경험"]
@@ -201,22 +205,22 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
 
               <div className="mt-4 space-y-4 text-[13px] text-gray-800">
                 <DetailRow
-                  iconSrc="/icons/money.svg"
+                  iconSrc="/icons/pay.svg"
                   label="연봉"
                   value="2000만원 · 협상 가능"
                 />
                 <DetailRow
-                  iconSrc="/icons/calendar.svg"
+                  iconSrc="/icons/working.svg"
                   label="출근"
                   value="주 5일 (월,화,수,목,금)"
                 />
                 <DetailRow
-                  iconSrc="/icons/pin.svg"
+                  iconSrc="/icons/location.svg"
                   label="주소"
                   value="서울특별시 성동구 성수이로 24길 32, 7층 (성수동2가)"
                 />
                 <DetailRow
-                  iconSrc="/icons/link.svg"
+                  iconSrc="/icons/linkurl.svg"
                   label="링크"
                   value="https://linkareer.com"
                   link

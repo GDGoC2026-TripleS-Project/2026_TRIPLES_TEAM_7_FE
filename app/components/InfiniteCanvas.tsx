@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -9,7 +9,7 @@ import {
 import { useCanvasGestures } from "../lib/hooks/useCanvasGestures";
 
 type RenderCtx = {
-  getScale: () => number;
+  scale: number;
   setGesturesBlocked: (blocked: boolean) => void;
 };
 
@@ -43,18 +43,20 @@ export default function InfiniteCanvas({
     [boardSize],
   );
 
-  const { onTransformed, gestureHandlers, getScale, blockGesturesRef } =
-    useCanvasGestures({
-      apiRef,
-      containerRef,
-      options: { minScale, maxScale, zoomIntensity },
-    });
+  const [scale, setScale] = useState(1);
+  const [gesturesBlocked, setGesturesBlocked] = useState(false);
+
+  const { onTransformed, gestureHandlers } = useCanvasGestures({
+    apiRef,
+    containerRef,
+    options: { minScale, maxScale, zoomIntensity },
+    gesturesBlocked,
+    onTransformStateChange: (st) => setScale(st.scale),
+  });
 
   const renderCtx: RenderCtx = {
-    getScale,
-    setGesturesBlocked: (blocked) => {
-      blockGesturesRef.current = blocked;
-    },
+    scale,
+    setGesturesBlocked,
   };
 
   return (
