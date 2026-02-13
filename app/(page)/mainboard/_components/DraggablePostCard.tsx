@@ -32,7 +32,6 @@ export default function DraggableJobCard({
 
   return (
     <div
-      data-role="job-card"
       style={{
         position: "absolute",
         left: x,

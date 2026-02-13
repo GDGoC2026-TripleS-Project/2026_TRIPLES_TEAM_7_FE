@@ -14,7 +14,6 @@ type Props = {
 export default function TabButton({ id, label, isActive, onClick }: Props) {
   return (
     <button
-      type="button"
       onClick={() => onClick?.(id)}
       className={[
         "h-10 rounded-[22px] px-6 text-[14px] font-medium transition",

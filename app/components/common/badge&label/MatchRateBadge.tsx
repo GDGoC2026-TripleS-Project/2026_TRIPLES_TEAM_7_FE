@@ -55,7 +55,6 @@ export default function MatchRateBadge(props: Props) {
         style,
         props.className ?? "",
       ].join(" ")}
-      aria-label={`매치율 ${rate}%`}
     >
       {rate}%
     </span>

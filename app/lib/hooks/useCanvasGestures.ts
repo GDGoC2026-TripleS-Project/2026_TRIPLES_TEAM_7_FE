@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import type {
-  ReactZoomPanPinchRef,
-  ReactZoomPanPinchState,
-} from "react-zoom-pan-pinch";
+import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { clamp } from "../utils/math";
 
 type TransformState = {
@@ -26,6 +23,12 @@ type Options = {
   minScale?: number;
   maxScale?: number;
   zoomIntensity?: number;
+};
+
+type OnTransformedState = {
+  scale: number;
+  positionX: number;
+  positionY: number;
 };
 
 export function useCanvasGestures({
@@ -59,15 +62,12 @@ export function useCanvasGestures({
   const zoomIntensity = options?.zoomIntensity ?? 0.0018;
 
   const onTransformed = useCallback(
-    (_ref: ReactZoomPanPinchRef, state: ReactZoomPanPinchState) => {
+    (_ref: ReactZoomPanPinchRef, state: OnTransformedState) => {
       const next: TransformState = {
-        scale: Number(state?.scale ?? 1),
-        positionX: Number(state?.positionX ?? 0),
-        positionY: Number(state?.positionY ?? 0),
-        previousScale:
-          typeof state?.previousScale === "number"
-            ? state.previousScale
-            : undefined,
+        scale: state.scale,
+        positionX: state.positionX,
+        positionY: state.positionY,
+        previousScale: stateRef.current.previousScale,
       };
 
       stateRef.current = next;

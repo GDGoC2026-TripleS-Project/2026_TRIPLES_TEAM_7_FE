@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-import InfiniteCanvas from "@/app/components/InfiniteCanvas";
-import CanvasHeader from "@/app/components/CanvasHeader";
-import CanvasSidebar from "@/app/components/CanvasSidebar";
-import { JobPostCardData } from "@/app/components/PostCard";
-import DraggableJobCard from "@/app/components/DraggablePostCard";
-import JobPostDetailDrawer from "@/app/components/JobPostDetailDrawer";
+import InfiniteCanvas from "@/app/(page)/mainboard/_components/InfiniteCanvas";
+import CanvasHeader from "@/app/components/header/CanvasHeader";
+import { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
+import DraggableJobCard from "@/app/(page)/mainboard/_components/DraggablePostCard";
+import JobPostDetailDrawer from "@/app/components/card-detail/JobPostDetailDrawer";
+import CanvasSidebar from "@/app/components/header/CanvasSidebar";
 
 type TabId = "dashboard" | "interview";
 type SideId = "link" | "list" | "user" | "settings";
@@ -81,16 +81,12 @@ export default function CanvasPage() {
   const SIDEBAR_WIDTH = 76; // CanvasSidebar 폭(w-[76px])에 맞춰줘
   const GAP = 12; // sidebar와 패널 사이 간격 (ml-3 = 12px)
   const HEADER_GAP = 16; // 패널 끝과 헤더 사이 여유
-
   const PANEL_WIDTH = 280; // CanvasSidebar 패널 폭(너가 만든 값과 동일하게)
 
-  const isPanelOpen = Boolean(activeSide);
+  const isPanelOpen = activeSide === "link";
 
   const headerLeft = useMemo(() => {
-    // 기본: 사이드바 오른쪽 + 여백
     const base = SIDEBAR_LEFT + SIDEBAR_WIDTH + HEADER_GAP;
-
-    // 패널이 열리면 패널 폭 + GAP 만큼 더 밀기
     return isPanelOpen ? base + GAP + PANEL_WIDTH : base;
   }, [isPanelOpen]);
 
@@ -124,16 +120,12 @@ export default function CanvasPage() {
 
       <div className="fixed left-4 top-4 bottom-4 z-50">
         <CanvasSidebar
-          logoSrc="/logo_P.svg"
-          active={activeSide ?? undefined}
-          onSelect={(id) => setActiveSide(id ?? null)}
+          active={activeSide}
+          onSelect={setActiveSide}
           panelWidth={PANEL_WIDTH}
-          items={[
-            { id: "link", iconSrc: "/icons/s1.svg", label: "link" },
-            { id: "list", iconSrc: "/icons/s2.svg", label: "list" },
-            { id: "user", iconSrc: "/icons/s3.svg", label: "user" },
-            { id: "settings", iconSrc: "/icons/s4.svg", label: "settings" },
-          ]}
+          onNavigate={(id) => {
+            console.log("navigate:", id);
+          }}
         />
       </div>
 
@@ -144,11 +136,7 @@ export default function CanvasPage() {
         <CanvasHeader
           activeTab={activeTab}
           onChangeTab={setActiveTab}
-          filterIconSrc="/icons/filter.svg"
-          chevronDownSrc="/icons/arrowdown.svg"
-          onClickFilter={() => {
-            console.log("filter click");
-          }}
+          onClickFilter={() => console.log("filter click")}
         />
       </div>
 

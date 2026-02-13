@@ -7,9 +7,9 @@
 // app/(page)/badges-example/page.tsx
 "use client";
 
-import MatchRateBadge from "@/app/components/MatchRateBadge";
-import DdayBadge from "@/app/components/DdayBadge";
-import KeywordLabel from "@/app/components/KeywordLabel";
+import MatchRateBadge from "@/app/components/common/badge&label/MatchRateBadge";
+import DdayBadge from "@/app/components/common/badge&label/DdayBadge";
+import KeywordLabel from "@/app/components/common/badge&label/KeywordLabel";
 
 export default function BadgesExamplePage() {
   return (

@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import DdayBadge from "@/app/components/DdayBadge";
-import MatchRateBadge from "@/app/components/MatchRateBadge";
+import DdayBadge from "@/app/components/common/badge&label/DdayBadge";
+import MatchRateBadge from "@/app/components/common/badge&label/MatchRateBadge";
 import KeywordLabel, {
   type KeywordLabelVariant,
-} from "@/app/components/KeywordLabel";
+} from "@/app/components/common/badge&label/KeywordLabel";
 
 type Match = { status: "pending" } | { status: "done"; rate: number };
 

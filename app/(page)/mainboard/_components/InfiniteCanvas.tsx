@@ -6,7 +6,7 @@ import {
   TransformComponent,
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
-import { useCanvasGestures } from "../lib/hooks/useCanvasGestures";
+import { useCanvasGestures } from "../../../lib/hooks/useCanvasGestures";
 
 type RenderCtx = {
   scale: number;
@@ -54,6 +54,11 @@ export default function InfiniteCanvas({
     onTransformStateChange: (st) => setScale(st.scale),
   });
 
+  const handleTransformed = (
+    ref: ReactZoomPanPinchRef,
+    state: { scale: number; positionX: number; positionY: number },
+  ) => onTransformed(ref, state);
+
   const renderCtx: RenderCtx = {
     scale,
     setGesturesBlocked,
@@ -86,7 +91,7 @@ export default function InfiniteCanvas({
           alignmentAnimation={{ disabled: true }}
           velocityAnimation={{ disabled: true }}
           zoomAnimation={{ disabled: true }}
-          onTransformed={onTransformed}
+          onTransformed={handleTransformed}
         >
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "100%" }}
