@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   TransformWrapper,
   TransformComponent,
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
-import { useCanvasGestures } from "../lib/hooks/useCanvasGestures";
+import { useCanvasGestures } from "../../../lib/hooks/useCanvasGestures";
 
 type RenderCtx = {
-  getScale: () => number;
+  scale: number;
   setGesturesBlocked: (blocked: boolean) => void;
 };
 
@@ -43,18 +43,25 @@ export default function InfiniteCanvas({
     [boardSize],
   );
 
-  const { onTransformed, gestureHandlers, getScale, blockGesturesRef } =
-    useCanvasGestures({
-      apiRef,
-      containerRef,
-      options: { minScale, maxScale, zoomIntensity },
-    });
+  const [scale, setScale] = useState(1);
+  const [gesturesBlocked, setGesturesBlocked] = useState(false);
+
+  const { onTransformed, gestureHandlers } = useCanvasGestures({
+    apiRef,
+    containerRef,
+    options: { minScale, maxScale, zoomIntensity },
+    gesturesBlocked,
+    onTransformStateChange: (st) => setScale(st.scale),
+  });
+
+  const handleTransformed = (
+    ref: ReactZoomPanPinchRef,
+    state: { scale: number; positionX: number; positionY: number },
+  ) => onTransformed(ref, state);
 
   const renderCtx: RenderCtx = {
-    getScale,
-    setGesturesBlocked: (blocked) => {
-      blockGesturesRef.current = blocked;
-    },
+    scale,
+    setGesturesBlocked,
   };
 
   return (
@@ -84,7 +91,7 @@ export default function InfiniteCanvas({
           alignmentAnimation={{ disabled: true }}
           velocityAnimation={{ disabled: true }}
           zoomAnimation={{ disabled: true }}
-          onTransformed={onTransformed}
+          onTransformed={handleTransformed}
         >
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "100%" }}

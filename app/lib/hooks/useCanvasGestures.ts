@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { clamp } from "../utils/math";
 
@@ -25,14 +25,26 @@ type Options = {
   zoomIntensity?: number;
 };
 
+type OnTransformedState = {
+  scale: number;
+  positionX: number;
+  positionY: number;
+};
+
 export function useCanvasGestures({
   apiRef,
   containerRef,
   options,
+  gesturesBlocked,
+  onTransformStateChange,
 }: {
   apiRef: React.RefObject<ReactZoomPanPinchRef | null>;
   containerRef: React.RefObject<HTMLDivElement | null>;
   options?: Options;
+  gesturesBlocked?: boolean;
+  onTransformStateChange?: (
+    st: Pick<TransformState, "scale" | "positionX" | "positionY">,
+  ) => void;
 }) {
   const stateRef = useRef<TransformState>({
     scale: 1,
@@ -42,19 +54,32 @@ export function useCanvasGestures({
   });
 
   const panningRef = useRef<PanningState>(null);
-  const blockGesturesRef = useRef(false);
-
   const isPanningRef = useRef(false);
-
   const suppressClickRef = useRef(false);
 
   const minScale = options?.minScale ?? 0.03;
   const maxScale = options?.maxScale ?? 6;
   const zoomIntensity = options?.zoomIntensity ?? 0.0018;
 
-  const onTransformed = (_ref: ReactZoomPanPinchRef, state: TransformState) => {
-    stateRef.current = state;
-  };
+  const onTransformed = useCallback(
+    (_ref: ReactZoomPanPinchRef, state: OnTransformedState) => {
+      const next: TransformState = {
+        scale: state.scale,
+        positionX: state.positionX,
+        positionY: state.positionY,
+        previousScale: stateRef.current.previousScale,
+      };
+
+      stateRef.current = next;
+
+      onTransformStateChange?.({
+        scale: next.scale,
+        positionX: next.positionX,
+        positionY: next.positionY,
+      });
+    },
+    [onTransformStateChange],
+  );
 
   const endPanning = (el?: HTMLDivElement, pointerId?: number) => {
     panningRef.current = null;
@@ -73,7 +98,7 @@ export function useCanvasGestures({
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (blockGesturesRef.current) return;
+    if (gesturesBlocked) return;
     if (!e.ctrlKey || e.button !== 0) return;
 
     e.preventDefault();
@@ -82,7 +107,6 @@ export function useCanvasGestures({
     if (!api) return;
 
     const el = e.currentTarget as HTMLDivElement;
-
     el.setPointerCapture(e.pointerId);
 
     isPanningRef.current = true;
@@ -96,7 +120,7 @@ export function useCanvasGestures({
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (blockGesturesRef.current) return;
+    if (gesturesBlocked) return;
     if (!isPanningRef.current) return;
 
     const st = panningRef.current;
@@ -157,7 +181,7 @@ export function useCanvasGestures({
     if (!el) return;
 
     const onWheelNative = (e: WheelEvent) => {
-      if (blockGesturesRef.current) {
+      if (gesturesBlocked) {
         e.preventDefault();
         return;
       }
@@ -196,8 +220,15 @@ export function useCanvasGestures({
     };
 
     el.addEventListener("wheel", onWheelNative, { passive: false });
-    return () => el.removeEventListener("wheel", onWheelNative as any);
-  }, [apiRef, containerRef, minScale, maxScale, zoomIntensity]);
+    return () => el.removeEventListener("wheel", onWheelNative);
+  }, [
+    apiRef,
+    containerRef,
+    gesturesBlocked,
+    minScale,
+    maxScale,
+    zoomIntensity,
+  ]);
 
   return {
     onTransformed,
@@ -210,7 +241,5 @@ export function useCanvasGestures({
       onClickCapture,
       onDoubleClickCapture,
     },
-    blockGesturesRef,
-    getScale: () => stateRef.current.scale,
   };
 }
