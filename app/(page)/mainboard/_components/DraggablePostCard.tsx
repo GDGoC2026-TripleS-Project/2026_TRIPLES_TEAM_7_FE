@@ -8,6 +8,7 @@ type Props = {
   x: number;
   y: number;
   data: JobPostCardData;
+  isActive?: boolean;
 
   scale: number;
   setGesturesBlocked: (v: boolean) => void;
@@ -27,6 +28,7 @@ export default function DraggableJobCard({
   onMove,
   onClick,
   className = "",
+  isActive = false,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
@@ -34,6 +36,8 @@ export default function DraggableJobCard({
 
   return (
     <div
+      data-board-card="true"
+      data-card-id={id}
       className={["absolute", "select-none", className].join(" ")}
       style={{
         left: x,
@@ -83,7 +87,10 @@ export default function DraggableJobCard({
         setGesturesBlocked(false);
       }}
     >
-      <JobPostCard data={data} />
+      <JobPostCard
+        data={data}
+        className={isActive ? "ring-1 ring-black" : ""}
+      />
     </div>
   );
 }

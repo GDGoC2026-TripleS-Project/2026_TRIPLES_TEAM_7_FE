@@ -30,8 +30,9 @@ type Props = {
 export default function JobPostCard({ data, className = "" }: Props) {
   return (
     <article
+      data-board-card="true"
       className={[
-        "w-70 rounded-[10px] bg-white",
+        "w-70 rounded-[10px] bg-white overflow-hidden",
         "shadow-sm",
         "px-3.5 py-3.5",
         className,

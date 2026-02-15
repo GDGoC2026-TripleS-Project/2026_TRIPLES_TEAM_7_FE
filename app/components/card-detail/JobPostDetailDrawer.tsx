@@ -1,7 +1,7 @@
 "use client";
 
 import { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TabBar from "../common/button&tab/TabBar";
 import JobPostDetailInfo from "./JobPostDetailInfo";
 import JobPostDetailMatch from "./JobPostDetailMatch";
@@ -13,6 +13,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   job: JobPostCardData | null;
+
+  showOverlay?: boolean;
 };
 
 const TAB_ITEMS = [
@@ -21,8 +23,18 @@ const TAB_ITEMS = [
   { id: "checklist", label: "체크리스트" },
 ] as const;
 
-export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
+export default function JobPostDetailDrawer({
+  open,
+  onClose,
+  job,
+  showOverlay = true,
+}: Props) {
   const [tab, setTab] = useState<TabId>("info");
+
+  useEffect(() => {
+    setTab("info");
+  }, [job?.id]);
+
   if (!job) return null;
 
   return (
@@ -32,14 +44,16 @@ export default function JobPostDetailDrawer({ open, onClose, job }: Props) {
         className={[
           "fixed inset-0 z-[90] transition-opacity duration-200",
           open ? "opacity-100" : "pointer-events-none opacity-0",
+          // showOverlay가 true면 딤, false면 투명(딤 없음)
+          showOverlay ? "bg-black/10" : "bg-transparent",
         ].join(" ")}
-        onMouseDown={onClose}
-      >
-        <div className="absolute inset-0 bg-black/10" />
-      </div>
+        onPointerDown={onClose}
+        aria-hidden="true"
+      />
 
       {/* Drawer */}
       <aside
+        data-job-drawer="true"
         className={[
           "fixed top-4 bottom-4 right-4 z-[100]",
           "w-[520px] max-w-[calc(100vw-32px)]",
