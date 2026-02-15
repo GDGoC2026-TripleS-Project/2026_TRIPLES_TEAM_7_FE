@@ -14,6 +14,7 @@ type Props = {
 
   onMove: (id: string, nextX: number, nextY: number) => void;
   onClick?: (id: string) => void;
+  className?: string;
 };
 
 export default function DraggableJobCard({
@@ -25,6 +26,7 @@ export default function DraggableJobCard({
   setGesturesBlocked,
   onMove,
   onClick,
+  className = "",
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
@@ -32,8 +34,8 @@ export default function DraggableJobCard({
 
   return (
     <div
+      className={["absolute", "select-none", className].join(" ")}
       style={{
-        position: "absolute",
         left: x,
         top: y,
         cursor: isDragging ? "grabbing" : "grab",

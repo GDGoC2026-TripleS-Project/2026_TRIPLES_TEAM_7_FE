@@ -30,6 +30,8 @@ type Props = {
 
   backgroundClassName?: string;
 
+  activeCardId?: string | null;
+
   // 카드 클릭 시 페이지별 처리
   onCardClick?: (card: BoardCard) => void;
 
@@ -41,16 +43,21 @@ type Props = {
 
   // 캔버스 밖(고정 레이어)에 추가로 렌더(대쉬보드 Drawer 같은 것)
   renderFixedOverlays?: (args: { cards: BoardCard[] }) => React.ReactNode;
+
+  boardDimmed?: boolean;
+  onBoardDimClick?: () => void;
 };
 
 export default function Canvas({
   activeTab,
   onChangeTab,
   backgroundClassName,
-
+  activeCardId,
   onCardClick,
   renderBoardExtras,
   renderFixedOverlays,
+  boardDimmed,
+  onBoardDimClick,
 }: Props) {
   const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
@@ -120,25 +127,42 @@ export default function Canvas({
 
           return (
             <>
-              {cards.map((c) => (
-                <DraggableJobCard
-                  key={c.id}
-                  id={c.id}
-                  x={c.x}
-                  y={c.y}
-                  data={c.data}
-                  scale={scale}
-                  setGesturesBlocked={setGesturesBlocked}
-                  onMove={(id, nextX, nextY) => {
-                    setCards((prev) =>
-                      prev.map((p) =>
-                        p.id === id ? { ...p, x: nextX, y: nextY } : p,
-                      ),
-                    );
+              {/* ✅ 딤을 "캔버스 내부"에 렌더 */}
+              {boardDimmed && (
+                <div
+                  className="absolute inset-0 z-40 bg-black/50"
+                  onPointerDown={(e) => {
+                    // ✅ 딤 클릭 = 닫기
+                    e.stopPropagation();
+                    onBoardDimClick?.();
                   }}
-                  onClick={() => onCardClick?.(c)}
                 />
-              ))}
+              )}
+
+              {cards.map((c) => {
+                const isActive = activeCardId === c.id;
+
+                return (
+                  <DraggableJobCard
+                    key={c.id}
+                    id={c.id}
+                    x={c.x}
+                    y={c.y}
+                    data={c.data}
+                    scale={scale}
+                    setGesturesBlocked={setGesturesBlocked}
+                    onMove={(id, nextX, nextY) => {
+                      setCards((prev) =>
+                        prev.map((p) =>
+                          p.id === id ? { ...p, x: nextX, y: nextY } : p,
+                        ),
+                      );
+                    }}
+                    onClick={() => onCardClick?.(c)}
+                    className={isActive ? "z-[60]" : "z-10"}
+                  />
+                );
+              })}
 
               {renderBoardExtras?.({ ctx, cards })}
             </>
