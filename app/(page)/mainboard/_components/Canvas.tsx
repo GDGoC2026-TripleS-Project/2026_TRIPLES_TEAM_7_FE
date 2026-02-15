@@ -32,6 +32,8 @@ type Props = {
 
   activeCardId?: string | null;
 
+  dimWhenActive?: boolean;
+
   // 카드 클릭 시 페이지별 처리
   onCardClick?: (card: BoardCard) => void;
 
@@ -43,9 +45,6 @@ type Props = {
 
   // 캔버스 밖(고정 레이어)에 추가로 렌더(대쉬보드 Drawer 같은 것)
   renderFixedOverlays?: (args: { cards: BoardCard[] }) => React.ReactNode;
-
-  boardDimmed?: boolean;
-  onBoardDimClick?: () => void;
 };
 
 export default function Canvas({
@@ -53,11 +52,10 @@ export default function Canvas({
   onChangeTab,
   backgroundClassName,
   activeCardId,
+  dimWhenActive = true,
   onCardClick,
   renderBoardExtras,
   renderFixedOverlays,
-  boardDimmed,
-  onBoardDimClick,
 }: Props) {
   const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
@@ -128,15 +126,8 @@ export default function Canvas({
           return (
             <>
               {/* ✅ 딤을 "캔버스 내부"에 렌더 */}
-              {boardDimmed && (
-                <div
-                  className="absolute inset-0 z-40 bg-black/50"
-                  onPointerDown={(e) => {
-                    // ✅ 딤 클릭 = 닫기
-                    e.stopPropagation();
-                    onBoardDimClick?.();
-                  }}
-                />
+              {dimWhenActive && activeCardId && (
+                <div className="pointer-events-none absolute inset-0 z-[50] bg-black/50" />
               )}
 
               {cards.map((c) => {
@@ -159,7 +150,9 @@ export default function Canvas({
                       );
                     }}
                     onClick={() => onCardClick?.(c)}
-                    className={isActive ? "z-[60]" : "z-10"}
+                    className={isActive ? "z-[60]" : "z-[10]"}
+                    // ✅ 추가: 카드 강조를 JobPostCard에 주기 위해
+                    isActive={isActive}
                   />
                 );
               })}

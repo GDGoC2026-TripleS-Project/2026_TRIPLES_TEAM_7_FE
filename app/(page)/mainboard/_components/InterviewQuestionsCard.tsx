@@ -62,9 +62,11 @@ export default function InterviewQuestionsCard({
 
   return (
     <div
-      onPointerDown={(e) => e.stopPropagation()}
+      // onPointerDown={(e) => e.stopPropagation()}
+      // ✅ 바깥 클릭 닫기 예외 판단용
+      data-interview-panel="true"
       className={[
-        "absolute z-[60]",
+        "absolute z-[70]", // ✅ 선택카드보다 위
         "w-130 overflow-hidden rounded-2xl bg-white shadow-2xl",
       ].join(" ")}
       style={{ left: x, top: y }}
