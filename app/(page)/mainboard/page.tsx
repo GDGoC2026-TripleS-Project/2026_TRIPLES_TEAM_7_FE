@@ -21,7 +21,7 @@ type BoardCard = {
 
 export default function CanvasPage() {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
-  const [activeSide, setActiveSide] = useState<SideId | null>("link");
+  const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
   const [cards, setCards] = useState<BoardCard[]>([
     {
@@ -130,7 +130,7 @@ export default function CanvasPage() {
       </div>
 
       <div
-        className="fixed top-4 z-50 transition-[left] duration-200 ease-out"
+        className="fixed top-2 z-50 transition-[left] duration-200 ease-out"
         style={{ left: headerLeft }}
       >
         <CanvasHeader

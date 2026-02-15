@@ -15,14 +15,14 @@ export default function DdayBadge({ daysLeft, className = "" }: Props) {
     <span
       className={[
         "inline-flex items-center justify-center",
-        "h-5.5 rounded-full w-9.75 px-7",
-        "text-[12px] font-semibold tracking-tight whitespace-nowrap",
-        danger ? "bg-[#E76565] text-white" : "bg-[#BDBDBD] text-white",
-        "shadow-sm",
+        "w-10 h-5.5 rounded-[59px]",
+        "text-[12px]/[12px] font-semibold tracking-tight whitespace-nowrap",
+        danger ? "bg-sub-red text-white" : "bg-[#BDBDBD] text-white",
         className,
       ].join(" ")}
     >
-      D - {d}
+      D<span className="px-0.5">-</span>
+      {d}
     </span>
   );
 }

@@ -26,8 +26,8 @@ export default function KeywordLabel({
     <span
       className={[
         "inline-flex items-center justify-center",
-        "h-8 rounded-full px-1",
-        "text-[16px] font-semibold",
+        "px-2 h-5.5 rounded-[59px] whitespace-nowrap",
+        "text-[12px]/[12px] font-medium",
         style,
         className,
       ].join(" ")}
