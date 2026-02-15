@@ -31,8 +31,9 @@ export default function LinkPanelContent({
   return (
     <aside
       className={[
-        "ml-3 h-full overflow-hidden",
-        "transition-[width,opacity,transform] duration-200 ease-out",
+        "ml-auto  h-full overflow-hidden",
+        // 효과 뺄지 말지 물어보기
+        // "transition-[width,opacity,transform] duration-200 ease-out",
         open ? "opacity-100" : "opacity-0 pointer-events-none",
       ].join(" ")}
       style={{
@@ -41,23 +42,24 @@ export default function LinkPanelContent({
       }}
     >
       {/* 패널 박스 */}
-      <div className="h-full rounded-[18px] bg-[#2B272B] shadow-xl">
+      <div className="h-full rounded-br-[18px] rounded-tr-[18px]  bg-[#332c2f]">
         {/* 상단 헤더 */}
-        <div className="flex items-center justify-between px-5 pt-5">
-          <div className="text-sm font-semibold text-white/80">
-            링크 붙여넣기
-          </div>
-
+        <div className="flex items-center justify-end px-5 pt-5">
           <button
             onClick={onClose}
-            className="rounded-md px-2 py-1 text-white/60 hover:text-white/90"
+            className="rounded-md text-white/60 hover:text-white/90"
           >
-            ✕
+            <Image
+              src="/icons/close_panel.svg"
+              alt="link"
+              width={20}
+              height={20}
+            />
           </button>
         </div>
 
         {/* 본문 */}
-        <div className="px-5 pb-5 pt-4 h-[calc(100%-56px)]">
+        <div className="px-5 pb-5 pt-20 h-[calc(100%-56px)] whitespace-nowrap">
           <div className="flex h-full flex-col">
             {/* 상단: 링크 붙여넣기 */}
             <div>
@@ -73,7 +75,7 @@ export default function LinkPanelContent({
                   placeholder="채용 공고 링크를 붙여넣어 주세요."
                   className={[
                     "w-full h-11 rounded-xl px-4",
-                    "bg-white/10 text-white placeholder:text-white/40",
+                    "bg-white/10 text-white placeholder:text-gray-300",
                     "border border-white/10",
                     "outline-none focus:border-white/25 text-sm",
                   ].join(" ")}
@@ -93,7 +95,7 @@ export default function LinkPanelContent({
                     key={it.id}
                     className={[
                       "text-left rounded-xl px-4 py-3",
-                      "bg-[#1f1b1f]/55 hover:bg-[#1f1b1f]/70",
+                      "hover:bg-main",
                       "transition",
                     ].join(" ")}
                     onClick={() => setUrl("https://example.com/job-posting")}

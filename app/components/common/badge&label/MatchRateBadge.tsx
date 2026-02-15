@@ -24,9 +24,8 @@ export default function MatchRateBadge(props: Props) {
       <span
         className={[
           "inline-flex items-center justify-center",
-          "h-7 rounded-full text-[16px] font-medium",
-          "border border-gray-500 bg-white text-gray-500",
-          "shadow-sm",
+          "w-13 py-1.25 rounded-[59px] text-[12px]/[12px] font-semibold whitespace-nowrap",
+          "border border-gray-400 text-gray-400",
           props.className ?? "",
         ].join(" ")}
       >
@@ -41,7 +40,7 @@ export default function MatchRateBadge(props: Props) {
 
   const style =
     tone === "red"
-      ? "border-red-300 text-red-500"
+      ? "border-sub-red text-sub-red"
       : tone === "yellow"
         ? "border-amber-300 text-amber-600 bg-amber-50"
         : "border-emerald-300 text-emerald-600 bg-emerald-50";
@@ -50,8 +49,8 @@ export default function MatchRateBadge(props: Props) {
     <span
       className={[
         "inline-flex items-center justify-center",
-        "h-7 rounded-full text-[12px]",
-        "border shadow-sm",
+        "w-10.75 py-1.25 rounded-[59px] text-[12px]/[12px] font-semibold whitespace-nowrap",
+        "border",
         style,
         props.className ?? "",
       ].join(" ")}
