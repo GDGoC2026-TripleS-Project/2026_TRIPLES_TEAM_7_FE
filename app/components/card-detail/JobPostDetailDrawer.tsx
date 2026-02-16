@@ -45,6 +45,7 @@ export default function JobPostDetailDrawer({
           "fixed inset-0 z-[90] transition-opacity duration-200",
           open ? "opacity-100" : "pointer-events-none opacity-0",
           // showOverlay가 true면 딤, false면 투명(딤 없음)
+          !showOverlay && "pointer-events-none",
           showOverlay ? "bg-black/10" : "bg-transparent",
         ].join(" ")}
         onPointerDown={onClose}
@@ -62,7 +63,7 @@ export default function JobPostDetailDrawer({
           open ? "translate-x-0" : "translate-x-[110%]",
           "overflow-hidden",
         ].join(" ")}
-        onMouseDown={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5">

@@ -71,6 +71,7 @@ export default function DraggableJobCard({
         onMove(id, x + e.movementX / scale, y + e.movementY / scale);
       }}
       onPointerUp={(e) => {
+        e.stopPropagation();
         setIsDragging(false);
         setGesturesBlocked(false);
 
@@ -89,7 +90,7 @@ export default function DraggableJobCard({
     >
       <JobPostCard
         data={data}
-        className={isActive ? "ring-1 ring-black" : ""}
+        className={isActive ? "ring-2 ring-main-click" : ""}
       />
     </div>
   );
