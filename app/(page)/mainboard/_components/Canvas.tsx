@@ -67,7 +67,7 @@ export default function Canvas({
       data: {
         id: "a",
         dday: 3,
-        match: { status: "pending" },
+        match: { status: "done", rate: 70 },
         title: "Backend Developer (Java)",
         meta: "네이버랩스 · 인턴 / 계약직",
         bullets: [

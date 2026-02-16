@@ -26,19 +26,12 @@ export default function JobPostDetailInfo({ job }: { job: JobPostCardData }) {
     <div>
       {/* Top badges */}
       <div className="flex items-start justify-between gap-4">
-        <DdayBadge
-          daysLeft={job.dday ?? 0}
-          className="h-8 px-4 text-[16px] font-bold"
-        />
+        <DdayBadge daysLeft={job.dday ?? 0} />
 
         {job.match.status === "pending" ? (
-          <MatchRateBadge status="pending" className="h-8 px-4 text-[12px]" />
+          <MatchRateBadge status="pending" />
         ) : (
-          <MatchRateBadge
-            status="done"
-            rate={job.match.rate}
-            className="h-8 px-4 text-[12px]"
-          />
+          <MatchRateBadge status="done" rate={job.match.rate} />
         )}
       </div>
 

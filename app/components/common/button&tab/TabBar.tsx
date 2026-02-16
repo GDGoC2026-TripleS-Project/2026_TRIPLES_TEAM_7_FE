@@ -43,7 +43,7 @@ export default function TabBar<T extends string>({
           );
         })}
       </div>
-      <div className="mt-2 h-px w-full bg-black/5" />
+      {/* <div className="mt-2 h-px w-full bg-black/5" /> */}
     </div>
   );
 }
