@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
+import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
 
 import Button from "@/app/components/common/button&tab/Button";
 import MatchGraph from "./MatchGraph";

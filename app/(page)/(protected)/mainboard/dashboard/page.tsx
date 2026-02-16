@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import JobPostDetailDrawer from "@/app/components/card-detail/JobPostDetailDrawer";
-import type { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
+import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
 import Canvas, { BoardCard, TabId } from "../_components/Canvas";
 
 type Selected = {

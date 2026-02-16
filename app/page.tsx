@@ -1,3 +1,3 @@
-import LandingPage from "./(page)/page";
+import LandingPage from "./(page)/(public)/page";
 
 export default LandingPage;

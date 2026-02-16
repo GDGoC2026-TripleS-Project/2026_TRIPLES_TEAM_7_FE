@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
+import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
 import ChecklistDetailToggle from "./ChecklistDetailToggle";
 import Image from "next/image";
 import MatchRateBadge from "../common/badge&label/MatchRateBadge";

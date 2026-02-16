@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import Image from "next/image";
-import { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
+import { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
 import DdayBadge from "../common/badge&label/DdayBadge";
 import MatchRateBadge from "../common/badge&label/MatchRateBadge";
 import KeywordLabel from "../common/badge&label/KeywordLabel";

@@ -1,6 +1,6 @@
 "use client";
 
-import { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
+import { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
 import React, { useEffect, useState } from "react";
 import TabBar from "../common/button&tab/TabBar";
 import JobPostDetailInfo from "./JobPostDetailInfo";

@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-import InfiniteCanvas from "@/app/(page)/mainboard/_components/InfiniteCanvas";
+import InfiniteCanvas from "@/app/(page)/(protected)/mainboard/_components/InfiniteCanvas";
 import CanvasHeader from "@/app/components/header/CanvasHeader";
 import CanvasSidebar from "@/app/components/header/CanvasSidebar";
 
-import type { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
-import DraggableJobCard from "@/app/(page)/mainboard/_components/DraggablePostCard";
+import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
+import DraggableJobCard from "@/app/(page)/(protected)/mainboard/_components/DraggablePostCard";
 
 export type TabId = "dashboard" | "interview";
 export type SideId = "link" | "list" | "user" | "settings";
