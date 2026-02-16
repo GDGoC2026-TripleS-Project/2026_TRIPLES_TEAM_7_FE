@@ -6,6 +6,7 @@ import TabBar from "../common/button&tab/TabBar";
 import JobPostDetailInfo from "./JobPostDetailInfo";
 import JobPostDetailMatch from "./JobPostDetailMatch";
 import JobPostDetailChecklist from "./JobPostDetailChecklist";
+import Image from "next/image";
 
 type TabId = "info" | "match" | "checklist";
 
@@ -45,6 +46,7 @@ export default function JobPostDetailDrawer({
           "fixed inset-0 z-[90] transition-opacity duration-200",
           open ? "opacity-100" : "pointer-events-none opacity-0",
           // showOverlay가 true면 딤, false면 투명(딤 없음)
+          !showOverlay && "pointer-events-none",
           showOverlay ? "bg-black/10" : "bg-transparent",
         ].join(" ")}
         onPointerDown={onClose}
@@ -62,21 +64,20 @@ export default function JobPostDetailDrawer({
           open ? "translate-x-0" : "translate-x-[110%]",
           "overflow-hidden",
         ].join(" ")}
-        onMouseDown={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5">
-          <div className="inline-flex items-center gap-2 text-[14px] font-semibold text-gray-700">
-            <span className="inline-flex h-4 w-4 rounded-[4px] border border-gray-300" />
+        <div className="flex items-center justify-between px-7 pt-7">
+          <div className="inline-flex items-center gap-2 text-[16px]/[16px] font-semibold text-main">
+            <Image
+              src="/icons/close_panel.svg"
+              alt="link"
+              width={20}
+              height={20}
+              onClick={onClose}
+            />
             <span>상세페이지</span>
           </div>
-
-          <button
-            onClick={onClose}
-            className="rounded-md px-2 py-1 text-gray-500 hover:text-gray-800"
-          >
-            ✕
-          </button>
         </div>
 
         {/* TabBar */}
@@ -85,7 +86,7 @@ export default function JobPostDetailDrawer({
         </div>
 
         {/* Body (scroll) */}
-        <div className="h-[calc(100%-110px)] overflow-y-auto px-5 pb-10 pt-5">
+        <div className="h-[calc(100%-110px)] overflow-y-auto px-7 pb-10 pt-7">
           {tab === "info" && <JobPostDetailInfo job={job} />}
           {tab === "match" && <JobPostDetailMatch job={job} />}
           {tab === "checklist" && <JobPostDetailChecklist job={job} />}
