@@ -6,7 +6,7 @@ import {
   TransformComponent,
   type ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
-import { useCanvasGestures } from "../../../lib/hooks/useCanvasGestures";
+import { useCanvasGestures } from "../../../../lib/hooks/useCanvasGestures";
 
 type RenderCtx = {
   scale: number;

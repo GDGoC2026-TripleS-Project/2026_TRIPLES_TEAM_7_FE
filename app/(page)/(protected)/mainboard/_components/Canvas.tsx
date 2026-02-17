@@ -2,15 +2,13 @@
 
 import { useMemo, useState } from "react";
 
-import InfiniteCanvas from "@/app/(page)/mainboard/_components/InfiniteCanvas";
+import InfiniteCanvas from "@/app/(page)/(protected)/mainboard/_components/InfiniteCanvas";
 import CanvasHeader from "@/app/components/header/CanvasHeader";
-import CanvasSidebar from "@/app/components/header/CanvasSidebar";
 
-import type { JobPostCardData } from "@/app/(page)/mainboard/_components/PostCard";
-import DraggableJobCard from "@/app/(page)/mainboard/_components/DraggablePostCard";
+import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
+import DraggableJobCard from "@/app/(page)/(protected)/mainboard/_components/DraggablePostCard";
 
 export type TabId = "dashboard" | "interview";
-export type SideId = "link" | "list" | "user" | "settings";
 
 export type BoardCard = {
   id: string;
@@ -57,8 +55,6 @@ export default function Canvas({
   renderBoardExtras,
   renderFixedOverlays,
 }: Props) {
-  const [activeSide, setActiveSide] = useState<SideId | null>(null);
-
   const [cards, setCards] = useState<BoardCard[]>([
     {
       id: "a",
@@ -103,19 +99,6 @@ export default function Canvas({
       },
     },
   ]);
-
-  const SIDEBAR_LEFT = 16; // left-4
-  const SIDEBAR_WIDTH = 76;
-  const GAP = 12;
-  const HEADER_GAP = 16;
-  const PANEL_WIDTH = 280;
-
-  const isPanelOpen = activeSide === "link";
-
-  const headerLeft = useMemo(() => {
-    const base = SIDEBAR_LEFT + SIDEBAR_WIDTH + HEADER_GAP;
-    return isPanelOpen ? base + GAP + PANEL_WIDTH : base;
-  }, [isPanelOpen]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
@@ -163,22 +146,9 @@ export default function Canvas({
         }}
       </InfiniteCanvas>
 
-      {/* Sidebar */}
-      <div className="fixed left-4 top-4 bottom-4 z-50">
-        <CanvasSidebar
-          active={activeSide}
-          onSelect={setActiveSide}
-          panelWidth={PANEL_WIDTH}
-          onNavigate={(id) => {
-            console.log("navigate:", id);
-          }}
-        />
-      </div>
-
-      {/* Header */}
       <div
         className="fixed top-2 z-50 transition-[left] duration-200 ease-out"
-        style={{ left: headerLeft }}
+        style={{ left: "var(--protected-header-left, 108px)" }}
       >
         <CanvasHeader
           activeTab={activeTab}
