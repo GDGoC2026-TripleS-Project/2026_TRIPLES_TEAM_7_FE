@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import CanvasSidebar from "@/app/components/header/CanvasSidebar";
 
@@ -19,6 +19,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
@@ -46,6 +47,11 @@ export default function ProtectedLayout({
     }
   };
 
+  const useProtectedBg =
+    pathname.startsWith("/checklists") ||
+    pathname.startsWith("/mypage") ||
+    pathname.startsWith("/settings");
+
   return (
     <div className="relative min-h-screen w-screen overflow-hidden">
       {/* ✅ Sidebar: protected 공통 */}
@@ -61,6 +67,7 @@ export default function ProtectedLayout({
       {/* ✅ CanvasHeader가 사용할 left 값을 CSS 변수로 내려줌 (추가 파일/cloneElement 불필요) */}
       <div
         data-protected-shell="true"
+        className={useProtectedBg ? "min-h-screen bg-protected-pages" : ""}
         style={
           {
             ["--protected-header-left" as any]: `${headerLeft}px`,
