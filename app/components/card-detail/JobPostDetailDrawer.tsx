@@ -24,17 +24,20 @@ const TAB_ITEMS = [
   { id: "checklist", label: "체크리스트" },
 ] as const;
 
-export default function JobPostDetailDrawer({
+export default function JobPostDetailDrawer(props: Props) {
+  const { job } = props;
+  if (!job) return null;
+
+  return <JobPostDetailDrawerInner key={job.id} {...props} />;
+}
+
+function JobPostDetailDrawerInner({
   open,
   onClose,
   job,
   showOverlay = true,
 }: Props) {
   const [tab, setTab] = useState<TabId>("info");
-
-  useEffect(() => {
-    setTab("info");
-  }, [job?.id]);
 
   if (!job) return null;
 
@@ -68,7 +71,7 @@ export default function JobPostDetailDrawer({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-7">
-          <div className="inline-flex items-center gap-2 text-[16px]/[16px] font-semibold text-main">
+          <div className="inline-flex items-center gap-5 text-[16px]/[16px] font-semibold text-main">
             <Image
               src="/icons/close_panel.svg"
               alt="link"
@@ -81,7 +84,7 @@ export default function JobPostDetailDrawer({
         </div>
 
         {/* TabBar */}
-        <div className="mt-3">
+        <div className="mt-7">
           <TabBar<TabId> value={tab} items={[...TAB_ITEMS]} onChange={setTab} />
         </div>
 

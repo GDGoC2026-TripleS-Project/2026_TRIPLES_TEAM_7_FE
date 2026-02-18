@@ -13,7 +13,7 @@ export default function ChecklistsPage() {
       </div>
 
       {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
         <div className="mx-auto max-w-6xl space-y-4">
           {mockChecklists.map((c) => (
             <ChecklistCard key={c.jobId} data={c} />

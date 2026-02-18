@@ -21,7 +21,7 @@ export default function JobPostDetailMatch({ job }: { job: JobPostCardData }) {
         />
       </div>
 
-      <div className="mt-5 flex-1 overflow-y-auto pr-1">
+      <div className="mt-5 flex-1 overflow-y-auto scrollbar-hide pr-1">
         <MatchDetailToggle />
       </div>
 
