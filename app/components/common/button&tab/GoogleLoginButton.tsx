@@ -1,19 +1,32 @@
 "use client";
 
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+
 import { googleLogin } from "@/app/lib/api/auth.api";
-import { signInWithGoogleAndGetIdToken } from "@/app/lib/api/googleLoginClient";
+import { useAuthStore } from "@/app/lib/api/auth.store";
+import { signInWithGoogleAndGetIdToken } from "@/app/lib/login-setting/googleLoginClient";
 
 export default function GoogleLoginButton() {
+  const router = useRouter();
+  const setAuth = useAuthStore((s: any) => s.setAuth);
+
   const onClick = async () => {
     try {
-      const { idToken } = await signInWithGoogleAndGetIdToken();
-
-      // 서버로 idToken 전달
+      const { idToken, user } = await signInWithGoogleAndGetIdToken();
+      console.log("firebase idToken exists?", !!idToken, idToken?.slice(0, 20));
       const data = await googleLogin(idToken);
 
-      console.log("server login ok:", data);
-      alert("구글 로그인 성공!");
-      // TODO: data로 유저 상태 저장 / 라우팅
+      setAuth({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        user: data.user ?? {
+          email: user.email ?? undefined,
+          name: user.displayName ?? undefined,
+        },
+      });
+
+      router.push("/mainboard/dashboard");
     } catch (e: any) {
       console.error(e);
       alert(e?.message ?? "구글 로그인 실패");
@@ -22,11 +35,19 @@ export default function GoogleLoginButton() {
 
   return (
     <button
-      type="button"
       onClick={onClick}
-      className="h-12 rounded-xl px-4 bg-black text-white"
+      className={[
+        "w-full",
+        "h-[56px] rounded-full",
+        "bg-white text-gray-900",
+        "flex items-center justify-center gap-3",
+        "font-semibold text-[18px]/[18px]",
+        "shadow-sm hover:opacity-95 active:scale-[0.99]",
+        "transition",
+      ].join(" ")}
     >
-      Google로 로그인
+      <Image src="/logo_G.svg" alt="Google" width={20} height={20} />
+      <span>구글 계정으로 로그인 하기</span>
     </button>
   );
 }

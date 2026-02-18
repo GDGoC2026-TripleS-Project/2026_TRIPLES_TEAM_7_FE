@@ -42,8 +42,8 @@ export default function MatchRateBadge(props: Props) {
     tone === "red"
       ? "border-sub-red text-sub-red"
       : tone === "yellow"
-        ? "border-amber-300 text-amber-600 bg-amber-50"
-        : "border-emerald-300 text-emerald-600 bg-emerald-50";
+        ? "border-amber-300 text-amber-600"
+        : "border-emerald-300 text-emerald-600";
 
   return (
     <span
