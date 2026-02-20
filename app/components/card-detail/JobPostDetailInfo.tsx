@@ -7,27 +7,48 @@ import DdayBadge from "../common/badge&label/DdayBadge";
 import MatchRateBadge from "../common/badge&label/MatchRateBadge";
 import KeywordLabel from "../common/badge&label/KeywordLabel";
 
-export default function JobPostDetailInfo({ job }: { job: JobPostCardData }) {
-  const title = job.title ?? "";
-  const meta = job.meta ?? "";
+// ✅ 상세 DTO 타입 (card.api.ts에서 export 해둔 타입 사용 권장)
+import type { CardDetailDto } from "@/app/lib/api/card.api";
+
+export default function JobPostDetailInfo({
+  job,
+  detail,
+}: {
+  job: JobPostCardData;
+  detail?: CardDetailDto;
+}) {
+  // ✅ detail이 있으면 detail 우선
+  const title = detail?.jobTitle ?? job.title ?? "";
+  const meta = detail
+    ? `${detail.companyName} · ${detail.employmentType}`
+    : (job.meta ?? "");
+
   const bullets = job.bullets ?? [];
 
   const conditions = useMemo(() => {
-    return {
-      required: job.keywords
-        .filter((k) => k.variant === "blue")
-        .map((k) => k.text),
-      preferred: ["Java", "Spring", "RDB 경험"],
-      career: ["신입", "경력 무관"],
-    };
-  }, [job]);
+    const required = detail?.necessaryStack?.length
+      ? detail.necessaryStack
+      : (job.keywords?.map((k) => k.text) ?? []);
+
+    const preferred = detail?.preferStack?.length ? detail.preferStack : [];
+
+    // 서버에 경력/근무일이 따로 오니까 우선 그걸 사용
+    const career = detail?.experienceLevel ? [detail.experienceLevel] : [];
+
+    return { required, preferred, career };
+  }, [detail, job]);
+
+  // ✅ 세부정보
+  const salary = detail?.salaryText ?? "";
+  const workDay = detail?.workDay ?? "";
+  const location = detail?.locationText ?? "";
+  const link = detail?.fileUrl ?? ""; // 응답 예시에 fileUrl 있음
 
   return (
     <div>
       {/* Top badges */}
       <div className="flex items-start justify-between gap-4">
         <DdayBadge daysLeft={job.dday ?? 0} />
-
         {job.match.status === "pending" ? (
           <MatchRateBadge status="pending" />
         ) : (
@@ -43,17 +64,21 @@ export default function JobPostDetailInfo({ job }: { job: JobPostCardData }) {
 
       <div className="my-5 h-px w-full bg-black/5" />
 
-      {/* AI 분석 */}
+      {/* AI 분석(현재는 요약 bullets 사용) */}
       <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-500">
         <Image src="/icons/des_ai.svg" alt="ai" width={16} height={16} />
         <span>AI 분석</span>
       </div>
       <div className="mt-3 space-y-1 text-[15px] text-gray-800">
-        {bullets.map((line, idx) => (
-          <p key={idx} className="leading-6">
-            {line}
-          </p>
-        ))}
+        {bullets.length ? (
+          bullets.map((line, idx) => (
+            <p key={idx} className="leading-6">
+              {line}
+            </p>
+          ))
+        ) : (
+          <p className="leading-6 text-gray-500">아직 요약 정보가 없습니다.</p>
+        )}
       </div>
 
       <div className="my-6 h-px w-full bg-black/5" />
@@ -65,15 +90,17 @@ export default function JobPostDetailInfo({ job }: { job: JobPostCardData }) {
         <ConditionRow
           iconSrc="/icons/need.svg"
           label="필수"
-          chips={(conditions.required.length
-            ? conditions.required
-            : ["Java"]
-          ).map((t) => ({ text: t, variant: "blue" as const }))}
+          chips={(conditions.required.length ? conditions.required : ["-"]).map(
+            (t) => ({ text: t, variant: "blue" as const }),
+          )}
         />
         <ConditionRow
           iconSrc="/icons/treatment.svg"
           label="우대"
-          chips={conditions.preferred.map((t) => ({
+          chips={(conditions.preferred.length
+            ? conditions.preferred
+            : ["-"]
+          ).map((t) => ({
             text: t,
             variant: "yellow" as const,
           }))}
@@ -81,39 +108,41 @@ export default function JobPostDetailInfo({ job }: { job: JobPostCardData }) {
         <ConditionRow
           iconSrc="/icons/career.svg"
           label="경력"
-          chips={conditions.career.map((t) => ({
-            text: t,
-            variant: "gray" as const,
-          }))}
+          chips={(conditions.career.length ? conditions.career : ["-"]).map(
+            (t) => ({
+              text: t,
+              variant: "gray" as const,
+            }),
+          )}
         />
       </div>
 
       <div className="my-6 h-px w-full bg-black/5" />
 
-      {/* 세부정보 (예시) */}
+      {/* 세부정보 */}
       <div className="text-[13px] font-semibold text-gray-500">세부 정보</div>
 
       <div className="mt-4 space-y-4 text-[13px] text-gray-800">
         <DetailRow
           iconSrc="/icons/pay.svg"
           label="연봉"
-          value="2000만원 · 협상 가능"
+          value={salary || "-"}
         />
         <DetailRow
           iconSrc="/icons/working.svg"
           label="출근"
-          value="주 5일 (월,화,수,목,금)"
+          value={workDay || "-"}
         />
         <DetailRow
           iconSrc="/icons/location.svg"
-          label="주소"
-          value="서울특별시 성동구 성수이로 24길 32, 7층 (성수동2가)"
+          label="지역"
+          value={location || "-"}
         />
         <DetailRow
           iconSrc="/icons/linkurl.svg"
           label="링크"
-          value="https://linkareer.com"
-          link
+          value={link || "-"}
+          link={!!link}
         />
       </div>
     </div>
@@ -168,7 +197,7 @@ function DetailRow({
       </div>
       {link ? (
         <a
-          className="text-[13px] font-semibold text-gray-900 underline"
+          className="text-[13px] font-semibold text-gray-900 underline break-all"
           href={value}
           target="_blank"
           rel="noreferrer"
@@ -176,7 +205,9 @@ function DetailRow({
           {value}
         </a>
       ) : (
-        <div className="text-[13px] font-medium text-gray-900">{value}</div>
+        <div className="text-[13px] font-medium text-gray-900 break-all">
+          {value}
+        </div>
       )}
     </div>
   );

@@ -105,7 +105,6 @@ function GaugeSemiCircle({ value, label }: { value: number; label: string }) {
 
         {/* 중앙 텍스트 */}
         <g transform="translate(100 78)">
-          <circle r="10" fill="rgba(80,200,170,0.08)" />
           <text
             x="4"
             y="6"

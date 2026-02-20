@@ -1,12 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import InfiniteCanvas from "@/app/(page)/(protected)/mainboard/_components/InfiniteCanvas";
 import CanvasHeader from "@/app/components/header/CanvasHeader";
 
 import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
 import DraggableJobCard from "@/app/(page)/(protected)/mainboard/_components/DraggablePostCard";
+import {
+  CanvasCardItem,
+  useCanvasCards,
+  useUpdateCanvasCardPosition,
+} from "@/app/lib/api/card.api";
+import { useSetAllCardsToInterview } from "@/app/lib/api/interview.api";
 
 export type TabId = "dashboard" | "interview";
 
@@ -45,6 +51,44 @@ type Props = {
   renderFixedOverlays?: (args: { cards: BoardCard[] }) => React.ReactNode;
 };
 
+function safeNum(n: any, fallback = 0) {
+  const v = typeof n === "number" ? n : Number(n);
+  return Number.isFinite(v) ? v : fallback;
+}
+
+function calcDday(deadlineAt: string) {
+  const end = new Date(deadlineAt).getTime();
+  const now = Date.now();
+  const diff = end - now;
+  const day = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return Math.max(0, day);
+}
+
+function mapToBoardCard(item: CanvasCardItem): BoardCard {
+  const c = item.cardContent;
+
+  return {
+    id: String(item.cardId),
+    x: safeNum((item as any).canvasX, 0),
+    y: safeNum((item as any).canvasY, 0),
+    data: {
+      id: String(item.cardId),
+      dday: calcDday(c.deadlineAt),
+      match: { status: c.isAnalyzed ? "done" : "pending", rate: 0 }, // 서버에 매치율 없으면 일단 0
+      title: c.jobTitle,
+      meta: `${c.companyName} · ${c.employmentType}`,
+      bullets: String(c.roleText || "")
+        .split("\n")
+        .filter(Boolean)
+        .slice(0, 2),
+      keywords: (c.necessaryStack ?? []).slice(0, 6).map((t) => ({
+        text: t,
+        variant: "blue",
+      })),
+    },
+  };
+}
+
 export default function Canvas({
   activeTab,
   onChangeTab,
@@ -55,50 +99,53 @@ export default function Canvas({
   renderBoardExtras,
   renderFixedOverlays,
 }: Props) {
-  const [cards, setCards] = useState<BoardCard[]>([
-    {
-      id: "a",
-      x: 220,
-      y: 160,
-      data: {
-        id: "a",
-        dday: 3,
-        match: { status: "done", rate: 70 },
-        title: "Backend Developer (Java)",
-        meta: "네이버랩스 · 인턴 / 계약직",
-        bullets: [
-          "대규모 트래픽 API 설계 및 운영",
-          "Spring 기반 서버 개발 및 유지보수",
-        ],
-        keywords: [
-          { text: "Java", variant: "blue" },
-          { text: "Spring", variant: "blue" },
-          { text: "RDB 경험", variant: "blue" },
-        ],
-      },
-    },
-    {
-      id: "b",
-      x: 680,
-      y: 160,
-      data: {
-        id: "b",
-        dday: 5,
-        match: { status: "done", rate: 23 },
-        title: "Backend Developer (Java)",
-        meta: "네이버랩스 · 인턴 / 계약직",
-        bullets: [
-          "대규모 트래픽 API 설계 및 운영",
-          "Spring 기반 서버 개발 및 유지보수",
-        ],
-        keywords: [
-          { text: "Java", variant: "blue" },
-          { text: "Spring", variant: "blue" },
-          { text: "RDB 경험", variant: "blue" },
-        ],
-      },
-    },
-  ]);
+  const { data: apiCards, isLoading } = useCanvasCards();
+
+  const updatePos = useUpdateCanvasCardPosition();
+
+  const setInterview = useSetAllCardsToInterview();
+
+  const mapped = useMemo(
+    () => (apiCards ?? []).map(mapToBoardCard),
+    [apiCards],
+  );
+
+  const [cards, setCards] = useState<BoardCard[]>([]);
+
+  useEffect(() => {
+    setCards(mapped);
+  }, [mapped]);
+
+  useEffect(() => {
+    if (!apiCards) return;
+    console.log("[GET /api/canvas] cards:", apiCards);
+  }, [apiCards]);
+
+  const prevTabRef = useRef<TabId>(activeTab);
+
+  useEffect(() => {
+    const prev = prevTabRef.current;
+
+    if (prev !== "interview" && activeTab === "interview") {
+      setInterview.mutate(undefined, {
+        onSuccess: (res) => {
+          console.log("[INTERVIEW STATUS OK]", res);
+        },
+        onError: (e) => {
+          console.log("[INTERVIEW STATUS FAIL]", e);
+          alert(e.message);
+        },
+      });
+    }
+
+    prevTabRef.current = activeTab;
+  }, [activeTab, setInterview]);
+
+  // 요청 중 탭 전환 막고 싶으면 여기서 가드
+  const handleChangeTab = (tab: TabId) => {
+    if (setInterview.isPending) return;
+    onChangeTab(tab);
+  };
 
   return (
     <div className="relative h-screen w-screen overflow-hidden">
@@ -108,9 +155,21 @@ export default function Canvas({
 
           return (
             <>
-              {/* ✅ 딤을 "캔버스 내부"에 렌더 */}
               {dimWhenActive && activeCardId && (
                 <div className="pointer-events-none absolute inset-0 z-[50] bg-black/50" />
+              )}
+
+              {isLoading && (
+                <div className="absolute left-210 top-90 z-[80] rounded-xl bg-white/70 px-3 py-2 text-lg">
+                  불러오는 중...
+                </div>
+              )}
+
+              {/* 이상하면 빼기 */}
+              {setInterview.isPending && (
+                <div className="absolute left-210 top-[140px] z-[90] rounded-xl bg-white/80 px-3 py-2 text-sm text-gray-700">
+                  면접 시뮬레이션 준비 중...
+                </div>
               )}
 
               {cards.map((c) => {
@@ -132,9 +191,34 @@ export default function Canvas({
                         ),
                       );
                     }}
+                    onDrop={({ id, prevX, prevY, nextX, nextY }) => {
+                      console.log("[DROP]", { id, prevX, prevY, nextX, nextY });
+
+                      updatePos.mutate(
+                        {
+                          cardId: Number(id),
+                          x: nextX,
+                          y: nextY,
+                        },
+                        {
+                          onSuccess: (res) => {
+                            console.log("[UPDATE OK] POST /api/canvas:", res);
+                          },
+                          onError: (e) => {
+                            console.log("[UPDATE FAIL] POST /api/canvas:", e);
+
+                            setCards((prev) =>
+                              prev.map((p) =>
+                                p.id === id ? { ...p, x: prevX, y: prevY } : p,
+                              ),
+                            );
+                            alert(e.message);
+                          },
+                        },
+                      );
+                    }}
                     onClick={() => onCardClick?.(c)}
                     className={isActive ? "z-[60]" : "z-[10]"}
-                    // ✅ 추가: 카드 강조를 JobPostCard에 주기 위해
                     isActive={isActive}
                   />
                 );
@@ -152,7 +236,7 @@ export default function Canvas({
       >
         <CanvasHeader
           activeTab={activeTab}
-          onChangeTab={onChangeTab}
+          onChangeTab={handleChangeTab}
           onClickFilter={() => console.log("filter click")}
         />
       </div>
