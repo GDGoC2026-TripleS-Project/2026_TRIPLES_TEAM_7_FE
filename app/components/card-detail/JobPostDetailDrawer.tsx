@@ -1,12 +1,13 @@
 "use client";
 
 import { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_components/PostCard";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import TabBar from "../common/button&tab/TabBar";
 import JobPostDetailInfo from "./JobPostDetailInfo";
 import JobPostDetailMatch from "./JobPostDetailMatch";
 import JobPostDetailChecklist from "./JobPostDetailChecklist";
 import Image from "next/image";
+import { useCardDetail } from "@/app/lib/api/card.api";
 
 type TabId = "info" | "match" | "checklist";
 
@@ -39,7 +40,21 @@ function JobPostDetailDrawerInner({
 }: Props) {
   const [tab, setTab] = useState<TabId>("info");
 
+  const cardId = job ? Number(job.id) : undefined;
+
+  const {
+    data: detailRes,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useCardDetail(
+    typeof cardId === "number" && Number.isFinite(cardId) ? cardId : undefined,
+  );
+
   if (!job) return null;
+
+  const detail = detailRes?.data;
 
   return (
     <>
@@ -53,7 +68,6 @@ function JobPostDetailDrawerInner({
           showOverlay ? "bg-black/10" : "bg-transparent",
         ].join(" ")}
         onPointerDown={onClose}
-        aria-hidden="true"
       />
 
       {/* Drawer */}
@@ -74,10 +88,11 @@ function JobPostDetailDrawerInner({
           <div className="inline-flex items-center gap-5 text-[16px]/[16px] font-semibold text-main">
             <Image
               src="/icons/close_panel.svg"
-              alt="link"
+              alt="close"
               width={20}
               height={20}
               onClick={onClose}
+              className="cursor-pointer"
             />
             <span>상세페이지</span>
           </div>
@@ -90,7 +105,33 @@ function JobPostDetailDrawerInner({
 
         {/* Body (scroll) */}
         <div className="h-[calc(100%-110px)] overflow-y-auto px-7 pb-10 pt-7">
-          {tab === "info" && <JobPostDetailInfo job={job} />}
+          {tab === "info" && (
+            <>
+              {isLoading && (
+                <div className="mb-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                  상세 정보를 불러오는 중...
+                </div>
+              )}
+
+              {isError && (
+                <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                  상세 정보를 불러오지 못했어요.{" "}
+                  <button
+                    className="ml-2 underline"
+                    onClick={() => refetch()}
+                    type="button"
+                  >
+                    다시 시도
+                  </button>
+                  <div className="mt-1 text-[12px] text-red-500">
+                    {error?.message}
+                  </div>
+                </div>
+              )}
+
+              <JobPostDetailInfo job={job} detail={detail} />
+            </>
+          )}
           {tab === "match" && <JobPostDetailMatch job={job} />}
           {tab === "checklist" && <JobPostDetailChecklist job={job} />}
         </div>

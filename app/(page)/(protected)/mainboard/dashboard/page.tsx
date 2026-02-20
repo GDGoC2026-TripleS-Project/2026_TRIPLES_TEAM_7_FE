@@ -18,6 +18,8 @@ export default function DashboardPage() {
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<JobPostCardData | null>(null);
 
+  const [linkOpen, setLinkOpen] = useState(true);
+
   const onCardClick = (card: BoardCard) => {
     setOpenCardId((prev) => {
       // 같은 카드면 닫기
@@ -65,7 +67,7 @@ export default function DashboardPage() {
       onChangeTab={onChangeTab}
       backgroundClassName="bg-dots"
       onCardClick={onCardClick}
-      activeCardId={openCardId} // 선택 카드 강조(원하면 유지)
+      activeCardId={openCardId}
       dimWhenActive={false}
       renderFixedOverlays={() => (
         <JobPostDetailDrawer

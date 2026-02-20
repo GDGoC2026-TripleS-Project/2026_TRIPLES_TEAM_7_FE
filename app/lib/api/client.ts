@@ -1,3 +1,5 @@
+import axios, { AxiosError, AxiosResponse, Method } from "axios";
+
 export class ApiError extends Error {
   status: number;
   data: any;
@@ -10,69 +12,133 @@ export class ApiError extends Error {
   }
 }
 
-export function getAccessTokenFromHeader(res: Response) {
+export function getAccessTokenFromHeader(res: any) {
+  const headers = res?.headers ?? {};
+
   const raw =
-    res.headers.get("authorization") || res.headers.get("Authorization");
+    headers["authorization"] ||
+    headers["Authorization"] ||
+    headers["access-token"] ||
+    headers["Access-Token"] ||
+    headers["x-access-token"] ||
+    headers["X-Access-Token"];
+
   if (!raw) return null;
-  return raw.toLowerCase().startsWith("bearer ") ? raw.slice(7) : raw;
+
+  const val = Array.isArray(raw) ? raw[0] : String(raw);
+  return val.toLowerCase().startsWith("bearer ") ? val.slice(7) : val;
 }
 
-type RequestOptions = Omit<RequestInit, "body"> & {
-  // JSON이면 object 넣고, 파일 업로드면 FormData 넣기
+export type RequestOptions = {
+  method?: Method | string;
+  headers?: HeadersInit;
   body?: any;
-  // JSON이 아닐 수 있는 경우를 위해 옵션 제공
+  params?: Record<string, any>;
   parseAs?: "json" | "text" | "blob" | "none";
+  signal?: AbortSignal;
+  withCredentials?: boolean;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+// 공통 axios 인스턴스
+const http = axios.create({
+  baseURL: API_BASE,
+  withCredentials: false,
+});
+
+function normalizeHeaders(input?: HeadersInit) {
+  if (!input) return {} as Record<string, string>;
+
+  if (typeof Headers !== "undefined" && input instanceof Headers) {
+    return Object.fromEntries(input.entries());
+  }
+
+  if (Array.isArray(input)) {
+    return Object.fromEntries(input);
+  }
+
+  return { ...(input as Record<string, string>) };
+}
 
 export async function request<T = any>(
   path: string,
   options: RequestOptions = {},
 ) {
-  const { body, headers, parseAs = "json", ...init } = options;
+  const {
+    body,
+    headers,
+    params,
+    parseAs = "json",
+    method = "GET",
+    signal,
+    withCredentials,
+  } = options;
 
-  const finalHeaders = new Headers(headers);
+  const finalHeaders = normalizeHeaders(headers);
 
   const isFormData =
     typeof FormData !== "undefined" && body instanceof FormData;
   const hasBody = body !== undefined && body !== null;
 
-  // FormData면 Content-Type 설정 금지(브라우저가 boundary 포함해서 자동 설정)
+  // FormData면 Content-Type 지정 금지
   if (!isFormData) {
-    if (!finalHeaders.has("Content-Type") && hasBody) {
-      finalHeaders.set("Content-Type", "application/json");
+    const hasContentType =
+      !!finalHeaders["Content-Type"] || !!finalHeaders["content-type"];
+
+    if (!hasContentType && hasBody) {
+      finalHeaders["Content-Type"] = "application/json";
     }
   }
 
-  console.log("REQUEST →", path, {
-    method: init.method,
-    headers: Object.fromEntries(finalHeaders.entries()),
-    body: hasBody ? (isFormData ? body : JSON.stringify(body)) : null,
-  });
-
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
+  console.log("[client.request] REQUEST →", {
+    path,
+    method,
     headers: finalHeaders,
-    body: hasBody ? (isFormData ? body : JSON.stringify(body)) : undefined,
+    params: params ?? null,
+    body: hasBody ? (isFormData ? "(FormData)" : body) : null,
   });
 
-  // 응답 파싱(에러 메시지에도 사용)
-  let data: any = null;
   try {
-    if (parseAs === "json") data = await res.json();
-    else if (parseAs === "text") data = await res.text();
-    else if (parseAs === "blob") data = await res.blob();
-    else data = null;
-  } catch {
-    data = null;
-  }
+    const res: AxiosResponse = await http.request({
+      url: path,
+      method: method as Method,
+      headers: finalHeaders,
+      params,
+      data: hasBody ? body : undefined,
+      signal,
+      withCredentials: withCredentials ?? false,
+      responseType:
+        parseAs === "blob" ? "blob" : parseAs === "text" ? "text" : "json",
+    });
 
-  if (!res.ok) {
+    console.log("[client.request] RESPONSE ←", {
+      path,
+      status: res.status,
+      authorization:
+        res.headers?.authorization ?? res.headers?.Authorization ?? null,
+      data: res.data,
+    });
+
+    const data = (res.data ?? {}) as T;
+    return { res, data };
+  } catch (err) {
+    const e = err as AxiosError<any>;
+
+    const status = e.response?.status ?? 0;
+    const data = e.response?.data ?? null;
+
+    console.log("[client.request] ERROR ←", {
+      path,
+      status,
+      data,
+    });
+
     const message =
-      (data && (data.message || data.error)) || `Request failed: ${res.status}`;
-    throw new ApiError(res.status, message, data);
-  }
+      (data && (data.message || data.error)) ||
+      e.message ||
+      `Request failed: ${status}`;
 
-  return { res, data: data as T };
+    throw new ApiError(status, message, data);
+  }
 }

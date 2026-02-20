@@ -26,7 +26,12 @@ export default function ResumeUploadBox({
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <div className={["rounded-[18px]", "bg-white px-8 py-6"].join(" ")}>
+    <div
+      className={[
+        "rounded-[18px]",
+        "border-dash-custom  bg-white px-8 py-6",
+      ].join(" ")}
+    >
       <div className="text-[16px] font-semibold text-gray-900">{label}</div>
       {!!helperText && (
         <p className="mt-2 text-[14px] text-gray-500">{helperText}</p>

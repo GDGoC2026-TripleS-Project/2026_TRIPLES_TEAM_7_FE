@@ -10,7 +10,6 @@ export default function InterviewPage() {
   const router = useRouter();
 
   const [introOpen, setIntroOpen] = useState(true);
-
   const [openCardId, setOpenCardId] = useState<string | null>(null);
 
   const onChangeTab = (tab: TabId) => {
@@ -58,10 +57,10 @@ export default function InterviewPage() {
         const PANEL_OFFSET_X = 380;
         return (
           <InterviewQuestionsCard
+            cardId={Number(card.id)}
             x={card.x + PANEL_OFFSET_X}
             y={card.y}
             onClose={() => setOpenCardId(null)}
-            onRefresh={() => console.log("refresh questions")}
           />
         );
       }}

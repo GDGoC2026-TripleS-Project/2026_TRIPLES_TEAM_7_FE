@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import JobPostCard, { JobPostCardData } from "./PostCard";
 
 type Props = {
@@ -14,9 +14,23 @@ type Props = {
   setGesturesBlocked: (v: boolean) => void;
 
   onMove: (id: string, nextX: number, nextY: number) => void;
+
+  onDrop?: (args: {
+    id: string;
+    prevX: number;
+    prevY: number;
+    nextX: number;
+    nextY: number;
+  }) => void;
+
   onClick?: (id: string) => void;
   className?: string;
 };
+
+function safeNum(n: any, fallback = 0) {
+  const v = typeof n === "number" ? n : Number(n);
+  return Number.isFinite(v) ? v : fallback;
+}
 
 export default function DraggableJobCard({
   id,
@@ -26,13 +40,28 @@ export default function DraggableJobCard({
   scale,
   setGesturesBlocked,
   onMove,
+  onDrop,
   onClick,
   className = "",
   isActive = false,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
-  const startRef = useRef<{ x: number; y: number } | null>(null);
+
+  const startPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const startPosRef = useRef<{ x: number; y: number } | null>(null);
+  const posRef = useRef<{ x: number; y: number }>({
+    x: safeNum(x),
+    y: safeNum(y),
+  });
   const movedRef = useRef(false);
+
+  useEffect(() => {
+    // ✅ props가 깨져도 ref는 안전값 유지
+    posRef.current = { x: safeNum(x), y: safeNum(y) };
+  }, [x, y]);
+
+  const safeX = safeNum(x);
+  const safeY = safeNum(y);
 
   return (
     <div
@@ -40,8 +69,8 @@ export default function DraggableJobCard({
       data-card-id={id}
       className={["absolute", "select-none", className].join(" ")}
       style={{
-        left: x,
-        top: y,
+        left: safeX,
+        top: safeY,
         cursor: isDragging ? "grabbing" : "grab",
         userSelect: "none",
         touchAction: "none",
@@ -52,23 +81,36 @@ export default function DraggableJobCard({
 
         (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
         setIsDragging(true);
+
         movedRef.current = false;
-        startRef.current = { x: e.clientX, y: e.clientY };
+        startPointerRef.current = { x: e.clientX, y: e.clientY };
+        startPosRef.current = { x: posRef.current.x, y: posRef.current.y };
 
         setGesturesBlocked(true);
       }}
       onPointerMove={(e) => {
         if (!isDragging) return;
+
+        const s = safeNum(scale, 1);
+        if (s === 0) return;
+
         e.preventDefault();
 
-        const s = startRef.current;
-        if (s) {
-          const dx = Math.abs(e.clientX - s.x);
-          const dy = Math.abs(e.clientY - s.y);
+        const sp = startPointerRef.current;
+        if (sp) {
+          const dx = Math.abs(e.clientX - sp.x);
+          const dy = Math.abs(e.clientY - sp.y);
           if (dx + dy > 4) movedRef.current = true;
         }
 
-        onMove(id, x + e.movementX / scale, y + e.movementY / scale);
+        const nextX = posRef.current.x + e.movementX / s;
+        const nextY = posRef.current.y + e.movementY / s;
+
+        const nx = safeNum(nextX, posRef.current.x);
+        const ny = safeNum(nextY, posRef.current.y);
+
+        posRef.current = { x: nx, y: ny };
+        onMove(id, nx, ny);
       }}
       onPointerUp={(e) => {
         e.stopPropagation();
@@ -81,7 +123,22 @@ export default function DraggableJobCard({
           );
         } catch {}
 
-        if (!movedRef.current) onClick?.(id);
+        if (movedRef.current) {
+          const prev = startPosRef.current;
+          const next = posRef.current;
+          if (prev) {
+            onDrop?.({
+              id,
+              prevX: prev.x,
+              prevY: prev.y,
+              nextX: next.x,
+              nextY: next.y,
+            });
+          }
+          return;
+        }
+
+        onClick?.(id);
       }}
       onPointerCancel={() => {
         setIsDragging(false);

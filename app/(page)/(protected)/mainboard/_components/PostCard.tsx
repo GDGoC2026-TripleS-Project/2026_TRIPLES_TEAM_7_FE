@@ -7,7 +7,7 @@ import KeywordLabel, {
   type KeywordLabelVariant,
 } from "@/app/components/common/badge&label/KeywordLabel";
 
-type Match = { status: "pending" } | { status: "done"; rate: number };
+export type Match = { status: "pending" } | { status: "done"; rate: number };
 
 export type JobPostCardData = {
   id: string;

@@ -1,39 +1,74 @@
 "use client";
 
+import { useAuthStore } from "@/app/lib/api/auth.store";
+import { useCreateJobCard } from "@/app/lib/api/card.api";
 import Image from "next/image";
-import React, { useState } from "react";
-
-type RecentUrlItem = {
-  id: string;
-  company: string;
-  title: string;
-};
-
-const MOCK_RECENTS: RecentUrlItem[] = [
-  { id: "1", company: "현대 캐피코", title: "시니어 소프트웨어 엔지니어" },
-  { id: "2", company: "현대 캐피코", title: "시니어 소프트웨어 엔지니어" },
-  { id: "3", company: "현대 캐피코", title: "시니어 소프트웨어 엔지니어" },
-];
+import React, { useMemo, useState } from "react";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   width?: number;
+
+  closeOnSuccess?: boolean;
 };
+
+function isValidUrl(input: string) {
+  try {
+    const u = new URL(input);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export default function LinkPanelContent({
   open,
   onClose,
   width = 280,
+  closeOnSuccess = false,
 }: Props) {
   const [url, setUrl] = useState("");
+
+  const createCard = useCreateJobCard();
+
+  const { hasHydrated, accessToken, refreshToken } = useAuthStore();
+
+  const trimmed = useMemo(() => url.trim(), [url]);
+  const hasText = useMemo(() => trimmed.length > 0, [trimmed]);
+  const isUrlOk = useMemo(
+    () => (hasText ? isValidUrl(trimmed) : true),
+    [hasText, trimmed],
+  );
+
+  const canSubmit = useMemo(() => {
+    if (!hasHydrated) return false;
+    if (!hasText || !isUrlOk) return false;
+    return !!accessToken || !!refreshToken;
+  }, [hasHydrated, hasText, isUrlOk, accessToken, refreshToken]);
+
+  const onSubmit = () => {
+    if (!canSubmit || createCard.isPending) return;
+
+    createCard.mutate(
+      { url: trimmed },
+      {
+        onSuccess: (res) => {
+          console.log("카드 생성 성공 cardId:", res.data.cardId);
+          setUrl("");
+          if (closeOnSuccess) onClose();
+        },
+        onError: (e) => {
+          alert(e.message);
+        },
+      },
+    );
+  };
 
   return (
     <aside
       className={[
         "ml-auto  h-full overflow-hidden",
-        // 효과 뺄지 말지 물어보기
-        // "transition-[width,opacity,transform] duration-200 ease-out",
         open ? "opacity-100" : "opacity-0 pointer-events-none",
       ].join(" ")}
       style={{
@@ -69,45 +104,71 @@ export default function LinkPanelContent({
               </div>
 
               <div className="mt-3">
-                <input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="채용 공고 링크를 붙여넣어 주세요."
-                  className={[
-                    "w-full h-11 rounded-xl px-4",
-                    "bg-white/10 text-white placeholder:text-gray-300",
-                    "border border-white/10",
-                    "outline-none focus:border-white/25 text-sm",
-                  ].join(" ")}
-                />
-              </div>
-            </div>
-
-            {/* 최근 url */}
-            <div className="mt-6">
-              <div className="text-sm font-semibold text-white/80">
-                최근 url
-              </div>
-
-              <div className="mt-3 flex flex-col gap-3">
-                {MOCK_RECENTS.map((it) => (
-                  <button
-                    key={it.id}
+                <div className="relative">
+                  <input
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") onSubmit();
+                    }}
+                    placeholder="채용 공고 링크를 붙여넣어 주세요."
                     className={[
-                      "text-left rounded-xl px-4 py-3",
-                      "hover:bg-main",
-                      "transition",
+                      "w-full h-11 rounded-xl pl-4 pr-12",
+                      "bg-white/10 text-white placeholder:text-gray-300",
+                      "border border-white/10",
+                      "outline-none focus:border-white/25 text-sm",
+                      !isUrlOk
+                        ? "border-red-400/60 focus:border-red-400/60"
+                        : "",
                     ].join(" ")}
-                    onClick={() => setUrl("https://example.com/job-posting")}
-                  >
-                    <div className="text-[12px] text-white/55">
-                      {it.company}
-                    </div>
-                    <div className="text-[14px] font-semibold text-white/90">
-                      {it.title}
-                    </div>
-                  </button>
-                ))}
+                  />
+
+                  {canSubmit && (
+                    <button
+                      type="button"
+                      onClick={onSubmit}
+                      disabled={createCard.isPending}
+                      className={[
+                        "absolute right-2 top-1/2 -translate-y-1/2",
+                        "h-8 w-8 rounded-lg bg-white/90 hover:bg-white",
+                        "grid place-items-center",
+                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                      ].join(" ")}
+                    >
+                      <Image
+                        src="/icons/arrow_right.svg"
+                        alt="create"
+                        width={16}
+                        height={16}
+                      />
+                    </button>
+                  )}
+                </div>
+
+                {!hasHydrated && (
+                  <p className="mt-2 text-[12px] text-white/50">
+                    인증 정보를 불러오는 중...
+                  </p>
+                )}
+
+                {hasHydrated && !accessToken && !refreshToken && (
+                  <p className="mt-2 text-[12px] text-red-300">
+                    로그인 정보가 없습니다. 다시 로그인해주세요.
+                  </p>
+                )}
+
+                {!isUrlOk && canSubmit && (
+                  <p className="mt-2 text-[12px] text-red-300">
+                    올바른 URL 형식(http/https)을 입력해주세요.
+                  </p>
+                )}
+
+                {/* (선택) 에러 표시 */}
+                {createCard.isError && (
+                  <p className="mt-2 text-[12px] text-red-300">
+                    {createCard.error?.message}
+                  </p>
+                )}
               </div>
             </div>
 
