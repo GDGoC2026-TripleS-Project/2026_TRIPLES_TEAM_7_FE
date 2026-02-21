@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import CanvasSidebar from "@/app/components/header/CanvasSidebar";
+import { useAuthStore } from "@/app/lib/api/auth.store";
 
 type SideId = "link" | "list" | "user" | "settings";
 
@@ -23,7 +24,28 @@ export default function ProtectedLayout({
 
   const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
-  // ✅ link 패널이 열리는 케이스만 headerLeft에 영향
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    const authed = !!accessToken;
+
+    if (!authed) {
+      clearAuth();
+      router.replace("/login");
+    }
+  }, [hasHydrated, accessToken, refreshToken, clearAuth, router]);
+
+  if (!hasHydrated) return null;
+
+  if (!accessToken) return null;
+
+  const hideSidebar = pathname.startsWith("/welcome");
+
   const isPanelOpen = activeSide === "link";
 
   const headerLeft = useMemo(() => {
@@ -31,7 +53,6 @@ export default function ProtectedLayout({
     return isPanelOpen ? base + GAP + PANEL_WIDTH : base;
   }, [isPanelOpen]);
 
-  // ✅ link는 "패널 토글"이므로 라우팅 대상 아님
   const onNavigate = (id: Exclude<SideId, "link">) => {
     if (id === "list") {
       router.push("/checklists");
@@ -54,17 +75,17 @@ export default function ProtectedLayout({
 
   return (
     <div className="relative min-h-screen w-screen overflow-hidden">
-      {/* ✅ Sidebar: protected 공통 */}
-      <div className="fixed left-4 top-4 bottom-4 z-50">
-        <CanvasSidebar
-          active={activeSide}
-          onSelect={setActiveSide}
-          panelWidth={PANEL_WIDTH}
-          onNavigate={onNavigate}
-        />
-      </div>
+      {!hideSidebar && (
+        <div className="fixed left-4 top-4 bottom-4 z-50">
+          <CanvasSidebar
+            active={activeSide}
+            onSelect={setActiveSide}
+            panelWidth={PANEL_WIDTH}
+            onNavigate={onNavigate}
+          />
+        </div>
+      )}
 
-      {/* ✅ CanvasHeader가 사용할 left 값을 CSS 변수로 내려줌 (추가 파일/cloneElement 불필요) */}
       <div
         data-protected-shell="true"
         className={useProtectedBg ? "min-h-screen bg-protected-pages" : ""}

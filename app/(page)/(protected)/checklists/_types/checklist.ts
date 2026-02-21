@@ -2,6 +2,8 @@ export type ChecklistTask = {
   id: string;
   text: string;
   done: boolean;
+
+  checklistId: number;
 };
 
 export type JobChecklist = {
@@ -11,6 +13,9 @@ export type JobChecklist = {
   rate: number;
   keywords: string[];
 
-  isNew: boolean; // 노란 점 표시용
+  isNew: boolean;
+
+  matchId: number;
+
   tasks: ChecklistTask[];
 };

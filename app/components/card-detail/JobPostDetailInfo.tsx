@@ -38,21 +38,29 @@ export default function JobPostDetailInfo({
     return { required, preferred, career };
   }, [detail, job]);
 
-  // ✅ 세부정보
   const salary = detail?.salaryText ?? "";
   const workDay = detail?.workDay ?? "";
   const location = detail?.locationText ?? "";
-  const link = detail?.fileUrl ?? ""; // 응답 예시에 fileUrl 있음
+  const link = detail?.fileUrl ?? "";
+
+  const detailMatchPercent = detail?.matchPercent;
+
+  const badge =
+    typeof detailMatchPercent === "number"
+      ? { status: "done" as const, rate: detailMatchPercent }
+      : job.match.status === "done"
+        ? { status: "done" as const, rate: job.match.rate }
+        : { status: "pending" as const };
 
   return (
     <div>
       {/* Top badges */}
       <div className="flex items-start justify-between gap-4">
         <DdayBadge daysLeft={job.dday ?? 0} />
-        {job.match.status === "pending" ? (
+        {badge.status === "pending" ? (
           <MatchRateBadge status="pending" />
         ) : (
-          <MatchRateBadge status="done" rate={job.match.rate} />
+          <MatchRateBadge status="done" rate={badge.rate} />
         )}
       </div>
 

@@ -24,6 +24,7 @@ type Props = {
   }) => void;
 
   onClick?: (id: string) => void;
+  onContextMenu?: (rect: DOMRect) => void;
   className?: string;
 };
 
@@ -42,6 +43,7 @@ export default function DraggableJobCard({
   onMove,
   onDrop,
   onClick,
+  onContextMenu,
   className = "",
   isActive = false,
 }: Props) {
@@ -56,7 +58,6 @@ export default function DraggableJobCard({
   const movedRef = useRef(false);
 
   useEffect(() => {
-    // ✅ props가 깨져도 ref는 안전값 유지
     posRef.current = { x: safeNum(x), y: safeNum(y) };
   }, [x, y]);
 
@@ -74,6 +75,14 @@ export default function DraggableJobCard({
         cursor: isDragging ? "grabbing" : "grab",
         userSelect: "none",
         touchAction: "none",
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = (
+          e.currentTarget as HTMLDivElement
+        ).getBoundingClientRect();
+        onContextMenu?.(rect);
       }}
       onPointerDown={(e) => {
         e.stopPropagation();

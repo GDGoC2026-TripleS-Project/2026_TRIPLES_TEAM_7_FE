@@ -38,16 +38,15 @@ type Props = {
 
   dimWhenActive?: boolean;
 
-  // 카드 클릭 시 페이지별 처리
   onCardClick?: (card: BoardCard) => void;
 
-  // 보드(캔버스) 위에 추가로 렌더(면접 질문 패널 같은 것)
+  onCardContextMenu?: (args: { card: BoardCard; rect: DOMRect }) => void;
+
   renderBoardExtras?: (args: {
     ctx: RenderCtx;
     cards: BoardCard[];
   }) => React.ReactNode;
 
-  // 캔버스 밖(고정 레이어)에 추가로 렌더(대쉬보드 Drawer 같은 것)
   renderFixedOverlays?: (args: { cards: BoardCard[] }) => React.ReactNode;
 };
 
@@ -67,6 +66,8 @@ function calcDday(deadlineAt: string) {
 function mapToBoardCard(item: CanvasCardItem): BoardCard {
   const c = item.cardContent;
 
+  const mp = c.matchPercent;
+
   return {
     id: String(item.cardId),
     x: safeNum((item as any).canvasX, 0),
@@ -74,7 +75,10 @@ function mapToBoardCard(item: CanvasCardItem): BoardCard {
     data: {
       id: String(item.cardId),
       dday: calcDday(c.deadlineAt),
-      match: { status: c.isAnalyzed ? "done" : "pending", rate: 0 }, // 서버에 매치율 없으면 일단 0
+      match:
+        typeof mp === "number"
+          ? { status: "done", rate: mp }
+          : { status: "pending" },
       title: c.jobTitle,
       meta: `${c.companyName} · ${c.employmentType}`,
       bullets: String(c.roleText || "")
@@ -96,6 +100,7 @@ export default function Canvas({
   activeCardId,
   dimWhenActive = true,
   onCardClick,
+  onCardContextMenu,
   renderBoardExtras,
   renderFixedOverlays,
 }: Props) {
@@ -141,7 +146,6 @@ export default function Canvas({
     prevTabRef.current = activeTab;
   }, [activeTab, setInterview]);
 
-  // 요청 중 탭 전환 막고 싶으면 여기서 가드
   const handleChangeTab = (tab: TabId) => {
     if (setInterview.isPending) return;
     onChangeTab(tab);
@@ -218,6 +222,9 @@ export default function Canvas({
                       );
                     }}
                     onClick={() => onCardClick?.(c)}
+                    onContextMenu={(rect) =>
+                      onCardContextMenu?.({ card: c, rect })
+                    }
                     className={isActive ? "z-[60]" : "z-[10]"}
                     isActive={isActive}
                   />
@@ -237,7 +244,7 @@ export default function Canvas({
         <CanvasHeader
           activeTab={activeTab}
           onChangeTab={handleChangeTab}
-          onClickFilter={() => console.log("filter click")}
+          onChangeSort={(sort) => console.log("sort:", sort)}
         />
       </div>
 
