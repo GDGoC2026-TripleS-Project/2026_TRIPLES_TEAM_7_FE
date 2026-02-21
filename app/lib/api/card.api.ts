@@ -42,7 +42,7 @@ export type CanvasCardContent = {
   employmentType: string;
   roleText: string;
   necessaryStack: string[];
-  isAnalyzed: boolean;
+  matchPercent: number | null;
 };
 
 export type CanvasCardItem = {
@@ -128,6 +128,8 @@ export type CardDetailDto = {
 
   addressPoint: CardAddressPoint | null;
 
+  matchPercent: number | null;
+
   cardStatus: CardStatus;
   createdAt: string;
 };
@@ -149,5 +151,31 @@ export function useCardDetail(cardId?: number) {
     queryFn: () => getCardDetail(cardId as number),
     enabled: typeof cardId === "number" && Number.isFinite(cardId),
     staleTime: 10_000,
+  });
+}
+
+/** 카드 삭제 */
+export type DeleteCardResponse = {
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  data: {
+    cardId: number;
+  };
+};
+
+export async function deleteCard(cardId: number) {
+  return authApi.del<DeleteCardResponse>(`/api/card/delete/${cardId}`);
+}
+
+export function useDeleteCard() {
+  const qc = useQueryClient();
+
+  return useMutation<DeleteCardResponse, Error, number>({
+    mutationFn: (cardId) => deleteCard(cardId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["canvasCards"] });
+      qc.invalidateQueries({ queryKey: ["cardDetail"] });
+    },
   });
 }

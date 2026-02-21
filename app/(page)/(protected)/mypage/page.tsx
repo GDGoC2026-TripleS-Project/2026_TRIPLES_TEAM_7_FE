@@ -23,13 +23,13 @@ export default function MyPage() {
 
   return (
     <div className="relative">
-      <div className="mx-auto w-full max-w-[1120px] px-8 pt-16">
+      <div className="mx-auto w-full max-w-[1320px] px-60 pt-16">
         <h1 className="text-center text-[28px] font-semibold text-gray-900">
           마이 페이지
         </h1>
       </div>
 
-      <div className="mx-auto w-full max-w-[1120px] px-8 pb-16 pt-14">
+      <div className="mx-auto w-full max-w-[1320px] px-8 pb-16 pt-30">
         {mode === "view" && (
           <ProfileCard
             location={location}

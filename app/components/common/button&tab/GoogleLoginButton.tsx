@@ -7,6 +7,7 @@ import { googleLogin, googleLoginAndStore } from "@/app/lib/api/auth.api";
 import { useAuthStore } from "@/app/lib/api/auth.store";
 import { signInWithGoogleAndGetIdToken } from "@/app/lib/login-setting/googleLoginClient";
 import { useState } from "react";
+import { getMyPage } from "@/app/lib/api/my.api";
 
 export default function GoogleLoginButton() {
   const router = useRouter();
@@ -24,20 +25,16 @@ export default function GoogleLoginButton() {
 
       await googleLoginAndStore(idToken);
 
-      const st = useAuthStore.getState();
-      console.log("[login] stored?", {
-        hasAccessToken: !!st.accessToken,
-        hasRefreshToken: !!st.refreshToken,
-        user: st.user,
-      });
+      const myRes = await getMyPage();
+      const address = myRes.data?.address ?? null;
+      const resumeUrl = myRes.data?.resumeUrl ?? null;
 
-      router.push("/mainboard/dashboard");
+      const shouldShowWelcome = !address && !resumeUrl;
+
+      router.replace(shouldShowWelcome ? "/welcome" : "/mainboard/dashboard");
     } catch (e: any) {
       console.error(e);
-
-      // ✅ 로그인 실패 시에만 auth 정리 (안전)
       clearAuth();
-
       alert(e?.message ?? "구글 로그인 실패");
     } finally {
       setLoading(false);

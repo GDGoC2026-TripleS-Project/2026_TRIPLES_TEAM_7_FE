@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { JobChecklist } from "../_types/checklist";
 import MatchRateBadge from "@/app/components/common/badge&label/MatchRateBadge";
 import Image from "next/image";
+import {
+  useMarkChecklistSeen,
+  useToggleChecklist,
+} from "@/app/lib/api/checklist.api";
 
 type Props = {
   data: JobChecklist;
@@ -12,15 +16,86 @@ type Props = {
 export default function ChecklistCard({ data }: Props) {
   const [open, setOpen] = useState(false);
 
-  const [tasks, setTasks] = useState(() => data.tasks);
+  const toggleMut = useToggleChecklist();
+  const seenMut = useMarkChecklistSeen();
+
+  const didMarkSeenRef = useRef(false);
+
+  const [overrideDoneByChecklistId, setOverrideDoneByChecklistId] = useState<
+    Record<number, boolean>
+  >({});
+
+  const effectiveOverride = useMemo(() => {
+    const validIds = new Set(data.tasks.map((t) => t.checklistId));
+    const next: Record<number, boolean> = {};
+    for (const [k, v] of Object.entries(overrideDoneByChecklistId)) {
+      const id = Number(k);
+      if (validIds.has(id)) next[id] = v;
+    }
+    return next;
+  }, [data.tasks, overrideDoneByChecklistId]);
+
+  const tasks = useMemo(() => {
+    return data.tasks.map((t) => {
+      const overridden = effectiveOverride[t.checklistId];
+      return {
+        ...t,
+        done: typeof overridden === "boolean" ? overridden : t.done,
+      };
+    });
+  }, [data.tasks, effectiveOverride]);
 
   const total = tasks.length;
   const done = useMemo(() => tasks.filter((t) => t.done).length, [tasks]);
 
-  const toggleTask = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)),
-    );
+  useEffect(() => {
+    if (data.isNew) didMarkSeenRef.current = false;
+  }, [data.isNew]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!data.isNew) return;
+    if (didMarkSeenRef.current) return;
+
+    didMarkSeenRef.current = true;
+    seenMut.mutate(data.matchId, {
+      onError: () => {
+        didMarkSeenRef.current = false;
+      },
+    });
+  }, [open, data.isNew, data.matchId, seenMut]);
+
+  const onToggleOpen = () => setOpen((v) => !v);
+
+  const onToggleChecklist = (checklistId: number) => {
+    if (toggleMut.isPending) return;
+
+    const current =
+      tasks.find((t) => t.checklistId === checklistId)?.done ?? false;
+
+    setOverrideDoneByChecklistId((prev) => ({
+      ...prev,
+      [checklistId]: !current,
+    }));
+
+    toggleMut.mutate(checklistId, {
+      onSuccess: (res) => {
+        const next = res.isButtonActive;
+        if (typeof next === "boolean") {
+          setOverrideDoneByChecklistId((prev) => ({
+            ...prev,
+            [checklistId]: next,
+          }));
+        }
+      },
+      onError: (e) => {
+        setOverrideDoneByChecklistId((prev) => ({
+          ...prev,
+          [checklistId]: current,
+        }));
+        alert(e.message);
+      },
+    });
   };
 
   return (
@@ -38,7 +113,7 @@ export default function ChecklistCard({ data }: Props) {
           <h3 className="mt-1 text-lg font-semibold text-gray-900">
             {data.title}
           </h3>
-          <p className="text-sm text-gray-400">{data.meta}</p>
+          <p className="text-sm text-gray-400"> {data.meta}</p>
         </div>
 
         <MatchRateBadge status="done" rate={data.rate} />
@@ -61,7 +136,6 @@ export default function ChecklistCard({ data }: Props) {
 
       <div className="my-4 h-px w-full bg-black/5" />
 
-      {/* ===================== 체크리스트 영역 ===================== */}
       {open && (
         <div className="mt-6 space-y-1 pb-10">
           {tasks.map((task) => {
@@ -70,7 +144,8 @@ export default function ChecklistCard({ data }: Props) {
             return (
               <button
                 key={task.id}
-                onClick={() => toggleTask(task.id)}
+                onClick={() => onToggleChecklist(task.checklistId)}
+                disabled={toggleMut.isPending}
                 className={[
                   "w-full text-left",
                   "flex items-start gap-3",
@@ -78,6 +153,7 @@ export default function ChecklistCard({ data }: Props) {
                   "transition-colors",
                   checked ? "bg-blue-50" : "",
                   checked ? "hover:bg-blue-100/60" : "hover:bg-black/[0.03]",
+                  toggleMut.isPending ? "opacity-70 cursor-not-allowed" : "",
                 ].join(" ")}
               >
                 {/* 체크박스 이미지 */}
@@ -103,10 +179,9 @@ export default function ChecklistCard({ data }: Props) {
         </div>
       )}
 
-      {/* ===================== 토글 버튼 (항상 존재 + 자연스러운 회전) ===================== */}
       <div className="relative">
         <button
-          onClick={() => setOpen((v) => !v)}
+          onClick={onToggleOpen}
           className={[
             "absolute left-1/2 -translate-x-1/2",
             "transition-all duration-300 ease-out",

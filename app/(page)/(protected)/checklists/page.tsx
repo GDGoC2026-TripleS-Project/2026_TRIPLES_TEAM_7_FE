@@ -1,7 +1,15 @@
+import { useAllChecklistsData } from "@/app/lib/api/checklist.api";
 import ChecklistCard from "./_components/ChecklistCard";
-import { mockChecklists } from "./_mock/checklists";
+import { mapChecklistGroupToJobChecklist } from "./_utils/mapChecklist";
 
 export default function ChecklistsPage() {
+  const { items, isLoading, isError, error } = useAllChecklistsData({
+    sort: "recent",
+    order: "desc",
+  });
+
+  const uiItems = items.map(mapChecklistGroupToJobChecklist);
+
   return (
     <div className="h-screen flex flex-col">
       {/* 상단 고정 영역 */}
@@ -15,9 +23,27 @@ export default function ChecklistsPage() {
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
         <div className="mx-auto max-w-6xl space-y-4">
-          {mockChecklists.map((c) => (
-            <ChecklistCard key={c.jobId} data={c} />
-          ))}
+          {isLoading && (
+            <div className="py-10 text-center text-gray-400">
+              불러오는 중...
+            </div>
+          )}
+
+          {isError && (
+            <div className="py-10 text-center text-red-500">
+              {error?.message ?? "체크리스트 조회 실패"}
+            </div>
+          )}
+
+          {!isLoading && !isError && items.length === 0 && (
+            <div className="py-10 text-center text-gray-400">
+              표시할 체크리스트가 없어요.
+            </div>
+          )}
+
+          {!isLoading &&
+            !isError &&
+            uiItems.map((c) => <ChecklistCard key={c.jobId} data={c} />)}
         </div>
       </div>
     </div>
