@@ -24,25 +24,25 @@ export default function ProtectedLayout({
 
   const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const refreshToken = useAuthStore((s) => s.refreshToken);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
+  // const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  // const accessToken = useAuthStore((s) => s.accessToken);
+  // const refreshToken = useAuthStore((s) => s.refreshToken);
+  // const clearAuth = useAuthStore((s) => s.clearAuth);
 
-  useEffect(() => {
-    if (!hasHydrated) return;
+  // useEffect(() => {
+  //   if (!hasHydrated) return;
 
-    const authed = !!accessToken;
+  //   const authed = !!accessToken;
 
-    if (!authed) {
-      clearAuth();
-      router.replace("/login");
-    }
-  }, [hasHydrated, accessToken, refreshToken, clearAuth, router]);
+  //   if (!authed) {
+  //     clearAuth();
+  //     router.replace("/login");
+  //   }
+  // }, [hasHydrated, accessToken, refreshToken, clearAuth, router]);
 
-  if (!hasHydrated) return null;
+  // if (!hasHydrated) return null;
 
-  if (!accessToken) return null;
+  // if (!accessToken) return null;
 
   const hideSidebar = pathname.startsWith("/welcome");
 

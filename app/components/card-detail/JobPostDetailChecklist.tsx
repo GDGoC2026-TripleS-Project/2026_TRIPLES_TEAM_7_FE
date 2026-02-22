@@ -9,6 +9,7 @@ import {
   useChecklistByMatchIdData,
   useToggleChecklist,
 } from "@/app/lib/api/checklist.api";
+import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
 
 type Props = {
   job: JobPostCardData;
@@ -57,7 +58,7 @@ export default function JobPostDetailChecklist({ job }: Props) {
   // 상단 표시용 (상세 API 기준으로 맞춰줌)
   const title = item?.cardSummary?.jobTitle ?? job.title;
   const meta = item?.cardSummary
-    ? `${item.cardSummary.companyName} · ${item.cardSummary.employmentType}`
+    ? `${item.cardSummary.companyName} · ${mapEmploymentTypeToLabel(item.cardSummary.employmentType)}`
     : job.meta;
 
   const rate =
@@ -116,7 +117,7 @@ export default function JobPostDetailChecklist({ job }: Props) {
       {/* 상태 처리 */}
       {typeof matchId !== "number" && (
         <div className="rounded-xl bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          matchId를 찾지 못했어요. (job 데이터의 matchId 필드를 확인해줘야 해요)
+          아직 매치율 검사를 하지 않았어요!
         </div>
       )}
 

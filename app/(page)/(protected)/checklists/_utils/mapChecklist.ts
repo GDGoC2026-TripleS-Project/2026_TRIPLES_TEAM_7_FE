@@ -1,5 +1,6 @@
 import { ChecklistGroup } from "@/app/lib/api/checklist.api";
 import { JobChecklist } from "../_types/checklist";
+import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
 
 export function mapChecklistGroupToJobChecklist(
   group: ChecklistGroup,
@@ -23,7 +24,7 @@ export function mapChecklistGroupToJobChecklist(
     jobId: String(group.matchId),
     matchId: group.matchId,
     title: card.jobTitle,
-    meta: `${card.companyName} · ${card.employmentType}`,
+    meta: `${card.companyName} · ${mapEmploymentTypeToLabel(card.employmentType)}`,
     rate: card.matchPercent,
     keywords,
     isNew: group.isNew,

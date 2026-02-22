@@ -9,6 +9,7 @@ import KeywordLabel from "../common/badge&label/KeywordLabel";
 
 // ✅ 상세 DTO 타입 (card.api.ts에서 export 해둔 타입 사용 권장)
 import type { CardDetailDto } from "@/app/lib/api/card.api";
+import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
 
 export default function JobPostDetailInfo({
   job,
@@ -20,7 +21,7 @@ export default function JobPostDetailInfo({
   // ✅ detail이 있으면 detail 우선
   const title = detail?.jobTitle ?? job.title ?? "";
   const meta = detail
-    ? `${detail.companyName} · ${detail.employmentType}`
+    ? `${detail.companyName} · ${mapEmploymentTypeToLabel(detail.employmentType)}`
     : (job.meta ?? "");
 
   const bullets = job.bullets ?? [];
@@ -170,7 +171,7 @@ function ConditionRow({
     <div className="flex items-start gap-4">
       <div className="flex w-[68px] items-center gap-2 text-[13px] text-gray-600">
         <Image src={iconSrc} alt={label} width={16} height={16} />
-        <span className="font-semibold">{label}</span>
+        <span className="font-semibold whitespace-nowrap">{label}</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {chips.map((c, idx) => (
@@ -201,11 +202,13 @@ function DetailRow({
     <div className="flex items-start gap-4">
       <div className="flex w-[60px] items-center gap-2 text-gray-600">
         <Image src={iconSrc} alt={label} width={16} height={16} />
-        <span className="text-[13px] font-semibold">{label}</span>
+        <span className="text-[13px] font-semibold whitespace-nowrap">
+          {label}
+        </span>
       </div>
       {link ? (
         <a
-          className="text-[13px] font-semibold text-gray-900 underline break-all"
+          className="text-[13px] font-semibold text-gray-900 ml-6 underline break-all"
           href={value}
           target="_blank"
           rel="noreferrer"
@@ -213,9 +216,7 @@ function DetailRow({
           {value}
         </a>
       ) : (
-        <div className="text-[13px] font-medium text-gray-900 break-all">
-          {value}
-        </div>
+        <div className="text-[13px] font-medium text-gray-900">{value}</div>
       )}
     </div>
   );

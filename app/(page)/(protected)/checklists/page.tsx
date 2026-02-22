@@ -1,14 +1,43 @@
-import { useAllChecklistsData } from "@/app/lib/api/checklist.api";
+"use client";
+
+import {
+  GetAllChecklistsParams,
+  useAllChecklistsData,
+} from "@/app/lib/api/checklist.api";
 import ChecklistCard from "./_components/ChecklistCard";
 import { mapChecklistGroupToJobChecklist } from "./_utils/mapChecklist";
+import ChecklistFilter, {
+  ChecklistFilterId,
+} from "./_components/ChecklistFilter";
+import { useMemo, useState } from "react";
+
+function mapFilterToParams(value: ChecklistFilterId): GetAllChecklistsParams {
+  switch (value) {
+    case "recent":
+      return { sort: "recent", order: "desc" };
+
+    case "recruit":
+      return { sort: "deadline", order: "asc" };
+
+    case "incomplete":
+      return { sort: "incomplete", order: "desc" };
+
+    default:
+      return { sort: "recent", order: "desc" };
+  }
+}
 
 export default function ChecklistsPage() {
-  const { items, isLoading, isError, error } = useAllChecklistsData({
-    sort: "recent",
-    order: "desc",
-  });
+  const [filter, setFilter] = useState<ChecklistFilterId>("recent");
 
-  const uiItems = items.map(mapChecklistGroupToJobChecklist);
+  const params = useMemo(() => mapFilterToParams(filter), [filter]);
+
+  const { items, isLoading, isError, error } = useAllChecklistsData(params);
+
+  const uiItems = useMemo(
+    () => items.map(mapChecklistGroupToJobChecklist),
+    [items],
+  );
 
   return (
     <div className="h-screen flex flex-col">
@@ -22,7 +51,15 @@ export default function ChecklistsPage() {
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
-        <div className="mx-auto max-w-6xl space-y-4">
+        <div className="sticky top-0 z-[60]">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="flex justify-end pt-6">
+              <ChecklistFilter value={filter} onChange={setFilter} />
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-6xl space-y-4 px-6">
           {isLoading && (
             <div className="py-10 text-center text-gray-400">
               불러오는 중...
@@ -36,8 +73,8 @@ export default function ChecklistsPage() {
           )}
 
           {!isLoading && !isError && items.length === 0 && (
-            <div className="py-10 text-center text-gray-400">
-              표시할 체크리스트가 없어요.
+            <div className="py-40 text-center text-gray-400">
+              체크리스트가 없어요.
             </div>
           )}
 
