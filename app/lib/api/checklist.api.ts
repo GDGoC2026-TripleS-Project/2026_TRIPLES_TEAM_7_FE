@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "./authApi";
+import { EmploymentType } from "../constants/mapEmploymentType";
 
 /** 전체 체크리스트 조회 */
 export type ChecklistSort = "deadline" | "recent" | "incomplete";
@@ -26,7 +27,7 @@ export type CardSummary = {
   cardId: number;
   jobTitle: string;
   companyName: string;
-  employmentType: string;
+  employmentType: EmploymentType;
   matchPercent: number;
   deadlineAt: string;
 };

@@ -7,14 +7,18 @@ import React, { useState } from "react";
 
 type Props = {
   initialValue: string;
-  onSubmit: (next: string) => void;
+  onSubmit: (next: string) => Promise<void> | void;
   onCancel: () => void;
+  isLoading?: boolean;
+  submitText?: string;
 };
 
 export default function EditAddressForm({
   initialValue,
   onSubmit,
   onCancel,
+  isLoading = false,
+  submitText = "수정완료",
 }: Props) {
   const [value, setValue] = useState(initialValue);
 
@@ -39,7 +43,7 @@ export default function EditAddressForm({
       </div>
 
       <div className="mt-10 rounded-[28px] bg-white px-10 py-10 shadow-sm">
-        <div className="max-w-[720px]">
+        <div className="">
           <label className="block text-[14px] font-semibold text-gray-900">
             거주 지역
           </label>
@@ -56,9 +60,9 @@ export default function EditAddressForm({
         <div className="mt-10 flex justify-center">
           <ButtonRounded
             onClick={() => onSubmit(value)}
-            disabled={value.trim().length === 0}
+            disabled={isLoading || value.trim().length === 0}
           >
-            수정완료
+            {isLoading ? "처리 중..." : submitText}
           </ButtonRounded>
         </div>
       </div>

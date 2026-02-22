@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "./authApi";
+import { EmploymentType } from "../constants/mapEmploymentType";
 
 /** 공고 카드 생성 */
 export type CreateCardRequest = {
@@ -39,7 +40,7 @@ export type CanvasCardContent = {
   deadlineAt: string;
   jobTitle: string;
   companyName: string;
-  employmentType: string;
+  employmentType: EmploymentType;
   roleText: string;
   necessaryStack: string[];
   matchPercent: number | null;
@@ -115,7 +116,7 @@ export type CardDetailDto = {
   deadlineAt: string;
   jobTitle: string;
   companyName: string;
-  employmentType: string;
+  employmentType: EmploymentType;
 
   roleText: string;
   necessaryStack: string[];
@@ -178,4 +179,48 @@ export function useDeleteCard() {
       qc.invalidateQueries({ queryKey: ["cardDetail"] });
     },
   });
+}
+
+/** 우선순위별 카드 조회 */
+export type CanvasPrioritySort =
+  | "deadline"
+  | "salary"
+  | "distance"
+  | "matchedPercent"
+  | null;
+
+export type CanvasPriorityGroup = {
+  priorityLevel: number;
+  cardIds: number[];
+};
+
+export type GetCanvasSortedResponse = {
+  success: boolean;
+  sort: CanvasPrioritySort;
+  message: string;
+  data: CanvasPriorityGroup[];
+};
+
+export async function getCanvasSortedCards(sort: CanvasPrioritySort) {
+  return authApi.get<GetCanvasSortedResponse>(
+    `/api/canvas/sorted?sort=${sort}`,
+  );
+}
+
+export function useCanvasSortedCards(sort: CanvasPrioritySort) {
+  return useQuery<GetCanvasSortedResponse, Error>({
+    queryKey: ["canvasSortedCards", sort],
+    queryFn: () => getCanvasSortedCards(sort),
+    enabled: !!sort,
+    staleTime: 10_000,
+  });
+}
+
+export function useCanvasSortedCardsData(sort: CanvasPrioritySort) {
+  const q = useCanvasSortedCards(sort);
+  return {
+    ...q,
+    groups: q.data?.data ?? [],
+    sort: q.data?.sort ?? sort,
+  };
 }

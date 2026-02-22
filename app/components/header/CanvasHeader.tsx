@@ -17,15 +17,15 @@ type Props = {
   activeTab: TabId;
   onChangeTab?: (tab: TabId) => void;
 
-  onChangeSort?: (sort: SortId) => void;
-  defaultSort?: SortId;
+  onChangeSort?: (sort: SortId | null) => void;
+  defaultSort?: SortId | null;
 };
 
 export default function CanvasHeader({
   activeTab,
   onChangeTab,
   onChangeSort,
-  defaultSort = "deadline",
+  defaultSort = null,
 }: Props) {
   const SORT_ITEMS: SortItem[] = useMemo(
     () => [
@@ -38,11 +38,14 @@ export default function CanvasHeader({
   );
 
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sort, setSort] = useState<SortId>(defaultSort);
+  const [sort, setSort] = useState<SortId | null>(defaultSort);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  const selectedLabel = SORT_ITEMS.find((s) => s.id === sort)?.label ?? "필터";
+  const selectedLabel =
+    sort == null
+      ? "필터"
+      : (SORT_ITEMS.find((s) => s.id === sort)?.label ?? "필터");
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -58,30 +61,20 @@ export default function CanvasHeader({
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, [filterOpen]);
 
-  const chromePill = [
-    "relative inline-flex items-center gap-2 rounded-[36px]",
-    "bg-[linear-gradient(180deg,#473f42_0%,#473f42_100%)]",
-    "backdrop-blur-[1px]",
-    "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
-    "before:pointer-events-none before:absolute before:inset-x-[100px] before:top-2 before:h-6",
-    "before:rounded-[28px] before:bg-white/10 before:blur-[1px] before:content-['']",
-    "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
-    "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
-  ].join(" ");
-
-  const chromePillSoft = [
-    "relative h-14 rounded-[28px] px-6",
-    "inline-flex items-center gap-3",
-    "bg-[linear-gradient(180deg,#ffffff_0%,#ffffff_100%)]",
-    "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
-    "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
-    "after:shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] after:content-['']",
-    "border border-black/5",
-  ].join(" ");
-
   return (
     <div ref={rootRef} className="relative inline-flex items-center gap-3">
-      <div className={chromePill}>
+      <div
+        className={[
+          "relative inline-flex items-center gap-2 rounded-[36px]",
+          "bg-[linear-gradient(0deg,#473f42_0%,#473f42_100&)]",
+          "backdrop-blur-[3px]",
+          "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
+          "before:pointer-events-none before:absolute before:inset-x-100 before:top-2 before:h-6",
+          "before:rounded-[28px] before:bg-white/10 before:blur-[1px] before:content-['']",
+          "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
+          "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
+        ].join(" ")}
+      >
         <div className="relative inline-flex items-center gap-2">
           <TabButton
             id="dashboard"
@@ -101,10 +94,16 @@ export default function CanvasHeader({
       {/* 필터 버튼 */}
       <div className="relative">
         <button
-          type="button"
           onClick={() => setFilterOpen((v) => !v)}
           className={[
-            chromePillSoft,
+            "flex items-center justify-center gap-2 px-5 h-12 rounded-[36px] whitespace-nowrap",
+            "bg-[linear-gradient(0deg,#473f42_0%,#473f42_100&)]",
+            "backdrop-blur-[3px]",
+            "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
+            "before:pointer-events-none before:absolute before:inset-x-100 before:top-2 before:h-6",
+            "before:rounded-[28px] before:bg-white/10 before:blur-[1px] before:content-['']",
+            "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
+            "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
             "text-[14px] font-semibold",
             "text-gray-800",
           ].join(" ")}
@@ -128,10 +127,15 @@ export default function CanvasHeader({
           <div
             className={[
               "absolute left-0 mt-3 z-[120]",
-              "w-[260px]",
-              "rounded-[22px] bg-white",
-              "shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
-              "border border-black/5",
+              "w-[200px]",
+              "rounded-[22px]",
+              "bg-[linear-gradient(0deg,#473f42_0%,#473f42_100&)]",
+              "backdrop-blur-[3px]",
+              "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
+              "before:pointer-events-none before:absolute before:inset-x-100 before:top-2 before:h-6",
+              "before:rounded-[28px] before:bg-white/10 before:blur-[1px] before:content-['']",
+              "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
+              "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
               "overflow-hidden",
             ].join(" ")}
             onPointerDown={(e) => e.stopPropagation()}
@@ -151,7 +155,7 @@ export default function CanvasHeader({
                         active
                           ? "text-gray-900 font-semibold"
                           : "text-gray-500 font-medium",
-                        active ? "" : "hover:bg-black/[0.03]",
+                        // active ? "" : "hover:bg-black/[0.03]",
                       ].join(" ")}
                       onClick={() => {
                         setSort(item.id);
@@ -159,7 +163,7 @@ export default function CanvasHeader({
                         setFilterOpen(false);
                       }}
                     >
-                      <span className="text-[18px] leading-6">
+                      <span className="text-[15px] leading-6">
                         {item.label}
                       </span>
 

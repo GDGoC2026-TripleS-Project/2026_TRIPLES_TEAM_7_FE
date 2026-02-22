@@ -19,11 +19,11 @@ type Props = {
   checkIconSrc?: string;
 };
 
-export default function ChecklistFilterDropdown({
+export default function ChecklistFilter({
   value,
   onChange,
   className = "",
-  checkIconSrc = "/icons/checkbox_checked.svg",
+  checkIconSrc = "/icons/checkbox-checked.svg",
 }: Props) {
   const ITEMS: FilterItem[] = useMemo(
     () => [
@@ -103,10 +103,13 @@ export default function ChecklistFilterDropdown({
             "absolute left-0 mt-3 z-[120]",
             "w-[320px] max-w-[calc(100vw-24px)]",
             "rounded-[26px]",
-            "bg-white/80",
-            "backdrop-blur-[14px]",
-            "shadow-[0_18px_40px_rgba(0,0,0,0.12)]",
-            "border border-white/40",
+            "bg-[linear-gradient(0deg,#473f42_0%,#473f42_100&)]",
+            "backdrop-blur-[3px]",
+            "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
+            "before:pointer-events-none before:absolute before:inset-x-100 before:top-2 before:h-6",
+            "before:rounded-[28px] before:bg-white/10 before:blur-[1px] before:content-['']",
+            "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
+            "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
             "overflow-hidden",
           ].join(" ")}
           onPointerDown={(e) => e.stopPropagation()}
@@ -126,7 +129,7 @@ export default function ChecklistFilterDropdown({
                       "transition-colors",
                       active
                         ? "text-gray-900 font-semibold"
-                        : "text-gray-500 font-medium hover:bg-black/[0.03]",
+                        : "text-gray-500 font-medium",
                     ].join(" ")}
                     onClick={() => {
                       onChange(item.id);

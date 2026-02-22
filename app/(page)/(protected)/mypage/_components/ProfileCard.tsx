@@ -3,14 +3,14 @@
 import React from "react";
 import Image from "next/image";
 
-type Resume = {
+type ResumeState = {
   name?: string;
   url?: string;
 };
 
 type Props = {
   location: string;
-  resume?: Resume;
+  resume?: ResumeState;
 
   onEditAll: () => void;
   onEditLocation: () => void;
@@ -48,7 +48,7 @@ export default function ProfileCard({
         <div className="flex items-center justify-between gap-6">
           <div className="min-w-0">
             <p className="text-[14px] text-gray-400">거주지</p>
-            <p className="mt-1 truncate text-[18px] font-semibold text-gray-900">
+            <p className="mt-1 truncate text-[15px] font-medium text-gray-700">
               {location}
             </p>
           </div>
@@ -70,19 +70,25 @@ export default function ProfileCard({
 
             <div className="mt-2 flex items-center gap-3">
               {hasResume ? (
-                <button
-                  onClick={onOpenResume}
-                  className="rounded-md p-1 hover:bg-black/[0.03] transition"
-                >
-                  <Image
-                    src="/icons/pdf.svg"
-                    alt="pdf"
-                    width={26}
-                    height={26}
-                  />
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={onOpenResume}
+                    className="rounded-md p-1 transition hover:bg-black/[0.03]"
+                  >
+                    <Image
+                      src="/icons/pdf.svg"
+                      alt="pdf"
+                      width={26}
+                      height={26}
+                    />
+                  </button>
+                  <span className="truncate text-[14px] text-gray-600">
+                    {resume?.name ?? "resume.pdf"}
+                  </span>
+                </>
               ) : (
-                <span className="text-[14px] text-gray-400">
+                <span className="text-[14px] medium text-gray-700">
                   첨부된 파일 없음
                 </span>
               )}

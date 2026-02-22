@@ -3,27 +3,38 @@
 import ButtonRounded from "@/app/components/common/button&tab/ButtonRounded";
 import ResumeUploadBox from "@/app/components/common/ResumeUploadBox";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
-type Resume = {
+type ResumeState = {
   name?: string;
   url?: string;
+  file?: File;
 };
 
 type Props = {
-  currentResume?: Resume;
-  onSubmit: (nextResume: Resume) => void;
+  currentResume?: ResumeState;
+  onSubmit: (nextResume: ResumeState) => Promise<void> | void;
   onCancel: () => void;
+  isLoading?: boolean;
+  submitText?: string;
 };
 
 export default function EditResumeForm({
   currentResume,
   onSubmit,
   onCancel,
+  isLoading = false,
+  submitText = "수정완료",
 }: Props) {
-  const [resume, setResume] = useState<Resume>(currentResume ?? {});
+  const [resume, setResume] = useState<ResumeState>(currentResume ?? {});
 
-  const hasResume = !!resume.name;
+  const canSubmit = !!resume.file;
+
+  const hasExisting = !!resume.url;
+  const existingLabel = useMemo(() => {
+    if (!hasExisting) return undefined;
+    return resume.name ?? "resume.pdf";
+  }, [hasExisting, resume.name]);
 
   return (
     <section className="w-full">
@@ -49,20 +60,40 @@ export default function EditResumeForm({
         <ResumeUploadBox
           label="이력서"
           helperText="PDF 파일을 권장해요. 클릭해서 업로드하세요."
-          hasFile={hasResume}
+          hasFile={hasExisting || !!resume.file}
           onPick={(file) => {
-            setResume({ name: file.name, url: "" });
+            setResume((prev) => ({
+              ...prev,
+              file,
+              name: file.name,
+            }));
           }}
-          onRemove={() => setResume({})}
+          onRemove={() => {
+            setResume((prev) => ({
+              ...prev,
+              file: undefined,
+              name: existingLabel, // 기존 표시 유지
+            }));
+          }}
           onOpen={() => {
-            if (!resume.name) return;
-            console.log("open resume:", resume);
+            if (!resume.url) return;
+            window.open(resume.url, "_blank", "noopener,noreferrer");
           }}
         />
 
+        {hasExisting && (
+          <p className="mt-3 text-[14px] text-gray-500">
+            현재 등록된 파일:{" "}
+            <span className="font-semibold text-gray-800">{existingLabel}</span>
+          </p>
+        )}
+
         <div className="mt-10 flex justify-center">
-          <ButtonRounded onClick={() => onSubmit(resume)} disabled={!hasResume}>
-            수정완료
+          <ButtonRounded
+            onClick={() => onSubmit(resume)}
+            disabled={isLoading || !canSubmit}
+          >
+            {isLoading ? "업로드 중..." : submitText}
           </ButtonRounded>
         </div>
       </div>

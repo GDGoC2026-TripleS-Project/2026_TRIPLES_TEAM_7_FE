@@ -82,15 +82,10 @@ body {
 .bg-landing {
   background-color: #ffffff;
 
-  background-image: url("/bglanding_white.svg"), url("/bglanding_puzzles.svg");
-  background-repeat: no-repeat, no-repeat;
-  background-position:
-    top,
-    center bottom;
-
-  background-size:
-    90% clamp(220px, 40vw, 800px),
-    100% clamp(100px, 80vw, 300px);
+  background-image: url("/bglanding_white.svg");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 90% clamp(220px, 40vw, 800px);
 }
 
 /* 로그인, welcome 배경스타일 */

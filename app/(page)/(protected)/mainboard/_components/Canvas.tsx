@@ -9,12 +9,17 @@ import type { JobPostCardData } from "@/app/(page)/(protected)/mainboard/_compon
 import DraggableJobCard from "@/app/(page)/(protected)/mainboard/_components/DraggablePostCard";
 import {
   CanvasCardItem,
+  CanvasPrioritySort,
   useCanvasCards,
+  useCanvasSortedCardsData,
   useUpdateCanvasCardPosition,
 } from "@/app/lib/api/card.api";
 import { useSetAllCardsToInterview } from "@/app/lib/api/interview.api";
+import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
 
 export type TabId = "dashboard" | "interview";
+
+type SortId = "deadline" | "distance" | "salary" | "match";
 
 export type BoardCard = {
   id: string;
@@ -33,13 +38,10 @@ type Props = {
   onChangeTab: (tab: TabId) => void;
 
   backgroundClassName?: string;
-
   activeCardId?: string | null;
-
   dimWhenActive?: boolean;
 
   onCardClick?: (card: BoardCard) => void;
-
   onCardContextMenu?: (args: { card: BoardCard; rect: DOMRect }) => void;
 
   renderBoardExtras?: (args: {
@@ -65,7 +67,6 @@ function calcDday(deadlineAt: string) {
 
 function mapToBoardCard(item: CanvasCardItem): BoardCard {
   const c = item.cardContent;
-
   const mp = c.matchPercent;
 
   return {
@@ -80,7 +81,7 @@ function mapToBoardCard(item: CanvasCardItem): BoardCard {
           ? { status: "done", rate: mp }
           : { status: "pending" },
       title: c.jobTitle,
-      meta: `${c.companyName} · ${c.employmentType}`,
+      meta: `${c.companyName} · ${mapEmploymentTypeToLabel(c.employmentType)}`,
       bullets: String(c.roleText || "")
         .split("\n")
         .filter(Boolean)
@@ -91,6 +92,87 @@ function mapToBoardCard(item: CanvasCardItem): BoardCard {
       })),
     },
   };
+}
+
+function normalizeCardIds(cardIds: unknown): number[] {
+  // 이미 number[]이면 그대로
+  if (Array.isArray(cardIds)) {
+    return cardIds
+      .map((v) => (typeof v === "number" ? v : Number(v)))
+      .filter((n) => Number.isFinite(n));
+  }
+
+  // 단일 number
+  if (typeof cardIds === "number") return [cardIds];
+
+  // "4,5,6" 같은 문자열
+  if (typeof cardIds === "string") {
+    return cardIds
+      .split(",")
+      .map((s) => Number(s.trim()))
+      .filter((n) => Number.isFinite(n));
+  }
+
+  // 혹시 { cardIds: [...] } 같은 형태로 들어오는 경우
+  if (cardIds && typeof cardIds === "object") {
+    const maybe = (cardIds as any).cardIds ?? (cardIds as any).ids;
+    if (Array.isArray(maybe)) return normalizeCardIds(maybe);
+  }
+
+  return [];
+}
+
+function mapSortIdToApiSort(sort: SortId): CanvasPrioritySort {
+  switch (sort) {
+    case "deadline":
+      return "deadline";
+    case "salary":
+      return "salary";
+    case "distance":
+      return "distance";
+    case "match":
+      return "matchedPercent";
+  }
+}
+
+function buildAutoLayoutPositions(args: {
+  groups: { priorityLevel: number; cardIds: number[] }[];
+  cardsById: Map<string, BoardCard>;
+}) {
+  const { groups, cardsById } = args;
+
+  const CARD_W = 280;
+  const CARD_H = 320;
+  const GAP_X = 40;
+  const GAP_Y = 10;
+
+  const GROUP_GAP_Y = 20;
+
+  const COLS = 3;
+
+  const startX = 0;
+  let cursorY = 0;
+
+  const nextPosById = new Map<string, { x: number; y: number }>();
+
+  for (const group of groups) {
+    const ids = normalizeCardIds((group as any).cardIds).map(String);
+
+    ids.forEach((id, idx) => {
+      const col = idx % COLS;
+      const row = Math.floor(idx / COLS);
+
+      const x = startX + col * (CARD_W + GAP_X);
+      const y = cursorY + row * (CARD_H + GAP_Y);
+
+      if (cardsById.has(id)) nextPosById.set(id, { x, y });
+    });
+
+    const rows = Math.ceil(ids.length / COLS);
+    cursorY += rows * (CARD_H + GAP_Y) + GROUP_GAP_Y;
+  }
+
+  return nextPosById;
 }
 
 export default function Canvas({
@@ -105,9 +187,7 @@ export default function Canvas({
   renderFixedOverlays,
 }: Props) {
   const { data: apiCards, isLoading } = useCanvasCards();
-
   const updatePos = useUpdateCanvasCardPosition();
-
   const setInterview = useSetAllCardsToInterview();
 
   const mapped = useMemo(
@@ -116,15 +196,36 @@ export default function Canvas({
   );
 
   const [cards, setCards] = useState<BoardCard[]>([]);
-
   useEffect(() => {
     setCards(mapped);
   }, [mapped]);
 
+  const [sort, setSort] = useState<SortId | null>(null);
+
+  const apiSort = useMemo(() => {
+    if (sort == null) return null;
+    return mapSortIdToApiSort(sort);
+  }, [sort]);
+
+  const { groups: sortedGroups } = useCanvasSortedCardsData(apiSort);
+
   useEffect(() => {
-    if (!apiCards) return;
-    console.log("[GET /api/canvas] cards:", apiCards);
-  }, [apiCards]);
+    if (!sortedGroups || sortedGroups.length === 0) return;
+
+    setCards((prev) => {
+      const cardsById = new Map(prev.map((c) => [c.id, c]));
+      const nextPosById = buildAutoLayoutPositions({
+        groups: sortedGroups,
+        cardsById,
+      });
+
+      // nextPosById에 포함된 카드만 위치 갱신, 나머지는 그대로 둠
+      return prev.map((c) => {
+        const nextPos = nextPosById.get(c.id);
+        return nextPos ? { ...c, x: nextPos.x, y: nextPos.y } : c;
+      });
+    });
+  }, [sortedGroups]);
 
   const prevTabRef = useRef<TabId>(activeTab);
 
@@ -133,9 +234,7 @@ export default function Canvas({
 
     if (prev !== "interview" && activeTab === "interview") {
       setInterview.mutate(undefined, {
-        onSuccess: (res) => {
-          console.log("[INTERVIEW STATUS OK]", res);
-        },
+        onSuccess: (res) => console.log("[INTERVIEW STATUS OK]", res),
         onError: (e) => {
           console.log("[INTERVIEW STATUS FAIL]", e);
           alert(e.message);
@@ -196,21 +295,10 @@ export default function Canvas({
                       );
                     }}
                     onDrop={({ id, prevX, prevY, nextX, nextY }) => {
-                      console.log("[DROP]", { id, prevX, prevY, nextX, nextY });
-
                       updatePos.mutate(
+                        { cardId: Number(id), x: nextX, y: nextY },
                         {
-                          cardId: Number(id),
-                          x: nextX,
-                          y: nextY,
-                        },
-                        {
-                          onSuccess: (res) => {
-                            console.log("[UPDATE OK] POST /api/canvas:", res);
-                          },
                           onError: (e) => {
-                            console.log("[UPDATE FAIL] POST /api/canvas:", e);
-
                             setCards((prev) =>
                               prev.map((p) =>
                                 p.id === id ? { ...p, x: prevX, y: prevY } : p,
@@ -244,7 +332,8 @@ export default function Canvas({
         <CanvasHeader
           activeTab={activeTab}
           onChangeTab={handleChangeTab}
-          onChangeSort={(sort) => console.log("sort:", sort)}
+          onChangeSort={(nextSort) => setSort(nextSort)}
+          defaultSort={null}
         />
       </div>
 
