@@ -116,7 +116,7 @@ export default function DashboardPage() {
               <>
                 {/* ✅ 보드 세계 내부 딤(absolute) */}
                 <div
-                  className="absolute inset-0 z-[110] bg-black/30"
+                  className="absolute inset-0 z-[110] bg-black/30 pointer-events-auto"
                   onPointerDown={() => setDeleteMenu(null)}
                 />
 

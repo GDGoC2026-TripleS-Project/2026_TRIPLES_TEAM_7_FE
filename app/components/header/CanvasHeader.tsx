@@ -32,7 +32,6 @@ export default function CanvasHeader({
       { id: "deadline", label: "마감일 순" },
       { id: "distance", label: "거리 순" },
       { id: "salary", label: "연봉 순" },
-      { id: "match", label: "이력서 매치율 순" },
     ],
     [],
   );
