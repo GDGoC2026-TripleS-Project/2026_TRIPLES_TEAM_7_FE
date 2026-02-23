@@ -32,7 +32,7 @@ export default function LandingPage() {
           <div className="mt-14 flex flex-col items-center text-[40px]/[51.2px] font-bold gap-8">
             <h1 className="text-center leading-[1.15] tracking-[-0.02em] text-black">
               <span>당신의 </span>
-              <span className="relative inline-block align-middle">
+              <span className="relative inline-block align-middle px-9 py-3 mx-1">
                 <Image
                   src="/puzzle_red.svg"
                   alt=""
@@ -40,16 +40,14 @@ export default function LandingPage() {
                   priority
                   className="pointer-events-none select-none object-contain"
                 />
-                <span className="relative z-10 px-6 py-3 text-[#E46B6B]">
-                  이력서
-                </span>
+                <span className="relative z-10 text-[#E46B6B]">이력서</span>
               </span>
               <span> 를</span>
             </h1>
 
             <h1 className="text-center leading-[1.15] tracking-[-0.02em] text-black">
               <span>공고 기준으로 </span>
-              <span className="relative inline-block align-middle">
+              <span className="relative inline-block align-middle px-9 py-3">
                 <Image
                   src="/puzzle_mint.svg"
                   alt=""
@@ -64,7 +62,7 @@ export default function LandingPage() {
             </h1>
           </div>
 
-          <div className="mt-10 md:mt-20">
+          <div className="mt-16">
             <ButtonRounded
               className="w-[160px] h-[50px] flex gap-1"
               onClick={() => router.push("/login")}

@@ -18,8 +18,8 @@ type UiQuestion = {
 
 type Props = {
   cardId: number;
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
   onClose: () => void;
 };
 
@@ -29,6 +29,8 @@ export default function InterviewQuestionsCard({
   y,
   onClose,
 }: Props) {
+  const hasPos = Number.isFinite(x) && Number.isFinite(y);
+
   // 먼저 "최근 질문 조회"
   const query = useInterviewQuestions(cardId);
 
@@ -93,14 +95,13 @@ export default function InterviewQuestionsCard({
 
   return (
     <div
-      // onPointerDown={(e) => e.stopPropagation()}
       // ✅ 바깥 클릭 닫기 예외 판단용
       data-interview-panel="true"
       className={[
-        "absolute z-[70]", // ✅ 선택카드보다 위
-        "w-130 overflow-hidden rounded-2xl bg-white shadow-2xl",
+        hasPos ? "absolute" : "relative",
+        "z-[70] w-130 overflow-hidden rounded-2xl bg-white shadow-2xl",
       ].join(" ")}
-      style={{ left: x, top: y }}
+      style={hasPos ? { left: x, top: y } : undefined}
     >
       {/* 헤더 */}
       <div className="flex items-center justify-between bg-[#2B272B] px-5 py-4">

@@ -24,34 +24,38 @@ export default function ProtectedLayout({
 
   const [activeSide, setActiveSide] = useState<SideId | null>(null);
 
-  // const hasHydrated = useAuthStore((s) => s.hasHydrated);
-  // const accessToken = useAuthStore((s) => s.accessToken);
-  // const refreshToken = useAuthStore((s) => s.refreshToken);
-  // const clearAuth = useAuthStore((s) => s.clearAuth);
-
-  // useEffect(() => {
-  //   if (!hasHydrated) return;
-
-  //   const authed = !!accessToken;
-
-  //   if (!authed) {
-  //     clearAuth();
-  //     router.replace("/login");
-  //   }
-  // }, [hasHydrated, accessToken, refreshToken, clearAuth, router]);
-
-  // if (!hasHydrated) return null;
-
-  // if (!accessToken) return null;
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const hideSidebar = pathname.startsWith("/welcome");
-
   const isPanelOpen = activeSide === "link";
 
   const headerLeft = useMemo(() => {
     const base = SIDEBAR_LEFT + SIDEBAR_WIDTH + HEADER_GAP;
     return isPanelOpen ? base + GAP + PANEL_WIDTH : base;
   }, [isPanelOpen]);
+
+  const useProtectedBg =
+    pathname.startsWith("/checklists") ||
+    pathname.startsWith("/mypage") ||
+    pathname.startsWith("/settings");
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    const authed = !!accessToken;
+
+    if (!authed) {
+      clearAuth();
+      router.replace("/login");
+    }
+  }, [hasHydrated, accessToken, refreshToken, clearAuth, router]);
+
+  if (!hasHydrated) return null;
+
+  if (!accessToken) return null;
 
   const onNavigate = (id: Exclude<SideId, "link">) => {
     if (id === "list") {
@@ -67,11 +71,6 @@ export default function ProtectedLayout({
       return;
     }
   };
-
-  const useProtectedBg =
-    pathname.startsWith("/checklists") ||
-    pathname.startsWith("/mypage") ||
-    pathname.startsWith("/settings");
 
   return (
     <div className="relative min-h-screen w-screen overflow-hidden">

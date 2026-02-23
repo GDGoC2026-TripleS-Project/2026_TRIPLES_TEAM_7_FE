@@ -51,6 +51,7 @@ type Props = {
 
   renderFixedOverlays?: (args: { cards: BoardCard[] }) => React.ReactNode;
   contextCardId?: string | null;
+  gesturesLocked?: boolean;
 };
 
 function safeNum(n: any, fallback = 0) {
@@ -190,6 +191,7 @@ export default function Canvas({
   renderBoardExtras,
   renderFixedOverlays,
   contextCardId = null,
+  gesturesLocked = false,
 }: Props) {
   const { data: apiCards, isLoading } = useCanvasCards();
   const updatePos = useUpdateCanvasCardPosition();
@@ -259,6 +261,10 @@ export default function Canvas({
     <div className="relative h-screen w-screen overflow-hidden">
       <InfiniteCanvas backgroundClassName={backgroundClassName}>
         {({ scale, setGesturesBlocked }) => {
+          useEffect(() => {
+            setGesturesBlocked(gesturesLocked);
+          }, [gesturesLocked, setGesturesBlocked]);
+
           const ctx = { scale, setGesturesBlocked };
 
           return (

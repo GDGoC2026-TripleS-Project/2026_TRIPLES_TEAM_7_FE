@@ -77,7 +77,7 @@ export default function ChecklistFilter({
         className={[
           "relative h-14 rounded-[28px] px-6",
           "inline-flex items-center gap-3",
-          "bg-gray-200",
+          // "bg-white/40",
           "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
           "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
           "after:shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] after:content-['']",

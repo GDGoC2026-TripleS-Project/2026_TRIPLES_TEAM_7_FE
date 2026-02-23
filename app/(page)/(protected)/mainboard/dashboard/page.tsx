@@ -110,26 +110,17 @@ export default function DashboardPage() {
           setOpenCardId(null);
           setSelectedJob(null);
         }}
-        renderBoardExtras={() => null}
-        renderFixedOverlays={() => (
+        renderBoardExtras={() => (
           <>
-            <JobPostDetailDrawer
-              open={drawerOpen}
-              onClose={() => {
-                setOpenCardId(null);
-                setSelectedJob(null);
-              }}
-              job={selectedJob}
-              showOverlay={false}
-            />
-
             {deleteMenu && (
-              <div className="fixed inset-0 z-[120]">
+              <>
+                {/* ✅ 보드 세계 내부 딤(absolute) */}
                 <div
-                  className="absolute inset-0 bg-black/30"
+                  className="absolute inset-0 z-[110] bg-black/30"
                   onPointerDown={() => setDeleteMenu(null)}
                 />
 
+                {/* ✅ 버튼은 viewport 기준이니까 fixed 유지 */}
                 <button
                   type="button"
                   className="fixed z-[130] h-10 rounded-[10px] px-6 bg-red-500 text-white font-semibold shadow-lg hover:bg-red-600"
@@ -139,9 +130,20 @@ export default function DashboardPage() {
                 >
                   삭제하기
                 </button>
-              </div>
+              </>
             )}
           </>
+        )}
+        renderFixedOverlays={() => (
+          <JobPostDetailDrawer
+            open={drawerOpen}
+            onClose={() => {
+              setOpenCardId(null);
+              setSelectedJob(null);
+            }}
+            job={selectedJob}
+            showOverlay={false}
+          />
         )}
         contextCardId={deleteMenu?.cardId ?? null}
       />
