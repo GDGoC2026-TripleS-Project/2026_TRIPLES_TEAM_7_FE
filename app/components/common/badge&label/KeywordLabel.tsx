@@ -7,14 +7,32 @@ export type KeywordLabelVariant = "blue" | "yellow" | "gray";
 type Props = {
   text: string;
   variant?: KeywordLabelVariant;
+  disabled?: boolean;
   className?: string;
 };
 
 export default function KeywordLabel({
   text,
   variant = "blue",
+  disabled = false,
   className = "",
 }: Props) {
+  if (disabled) {
+    return (
+      <span
+        className={[
+          "inline-flex items-center justify-center",
+          "px-2 h-5.5 rounded-[59px] whitespace-nowrap",
+          "text-[12px]/[12px] font-medium",
+          "bg-black/20 text-black/70",
+          className,
+        ].join(" ")}
+      >
+        {text}
+      </span>
+    );
+  }
+
   const style =
     variant === "blue"
       ? "bg-[#E6EFFF] text-[#2C599D]"

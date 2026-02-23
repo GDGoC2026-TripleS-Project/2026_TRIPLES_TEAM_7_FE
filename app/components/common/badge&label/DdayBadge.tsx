@@ -1,13 +1,30 @@
-"use client";
-
-import React from "react";
-
 type Props = {
   daysLeft: number;
+  isClosed?: boolean; // ✅
   className?: string;
 };
 
-export default function DdayBadge({ daysLeft, className = "" }: Props) {
+export default function DdayBadge({
+  daysLeft,
+  isClosed = false,
+  className = "",
+}: Props) {
+  if (isClosed) {
+    return (
+      <span
+        className={[
+          "inline-flex items-center justify-center",
+          "px-3 h-5.5 rounded-[59px]",
+          "text-[12px]/[12px] font-semibold tracking-tight whitespace-nowrap",
+          "bg-[#2F2F2F] text-white", // ✅ 지원 마감 pill
+          className,
+        ].join(" ")}
+      >
+        지원 마감
+      </span>
+    );
+  }
+
   const d = Math.max(0, Math.floor(daysLeft));
   const danger = d <= 5;
 

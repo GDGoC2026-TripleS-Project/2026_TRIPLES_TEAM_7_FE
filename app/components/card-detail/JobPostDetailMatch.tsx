@@ -29,13 +29,16 @@ export default function JobPostDetailMatch({ job }: Props) {
   const latestMatchQuery = useLatestMatch(isValidCardId ? cardId : undefined);
   const latest = latestMatchQuery.data;
 
+  const hasMatchPercent =
+    latest != null && typeof (latest as any).matchPercent === "number";
+
+  const isDone = hasMatchPercent;
+  const rate = hasMatchPercent ? latest!.matchPercent : 0;
+
   const createMatch = useCreateMatch();
 
-  const isDone = !!latest;
-  const rate = latest?.matchPercent ?? 0;
-
   const items = useMemo(() => {
-    if (!latest) return [];
+    if (!hasMatchPercent) return [];
 
     return [
       {

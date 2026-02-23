@@ -5,11 +5,13 @@ import React from "react";
 type Props =
   | {
       status: "pending";
+      isClosed?: boolean;
       className?: string;
     }
   | {
       status: "done";
       rate: number;
+      isClosed?: boolean;
       className?: string;
     };
 
@@ -19,13 +21,17 @@ function clampRate(n: number) {
 }
 
 export default function MatchRateBadge(props: Props) {
+  const closed = !!props.isClosed;
+
   if (props.status === "pending") {
     return (
       <span
         className={[
           "inline-flex items-center justify-center",
           "w-13 py-1.25 rounded-[59px] text-[12px]/[12px] font-semibold whitespace-nowrap",
-          "border border-gray-400 text-gray-400",
+          closed
+            ? "border border-black/40 text-black/60" // ✅ 마감 시 회색
+            : "border border-gray-400 text-gray-400",
           props.className ?? "",
         ].join(" ")}
       >
@@ -35,6 +41,21 @@ export default function MatchRateBadge(props: Props) {
   }
 
   const rate = clampRate(props.rate);
+
+  if (closed) {
+    return (
+      <span
+        className={[
+          "inline-flex items-center justify-center",
+          "w-10.75 py-1.25 rounded-[59px] text-[12px]/[12px] font-semibold whitespace-nowrap",
+          "border border-black/40 text-black/70",
+          props.className ?? "",
+        ].join(" ")}
+      >
+        {rate}%
+      </span>
+    );
+  }
 
   const tone = rate <= 49 ? "red" : rate <= 74 ? "yellow" : "green";
 

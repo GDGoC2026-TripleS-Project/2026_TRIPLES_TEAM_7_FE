@@ -61,13 +61,16 @@ function calcDday(deadlineAt: string) {
   const end = new Date(deadlineAt).getTime();
   const now = Date.now();
   const diff = end - now;
+  if (diff < 0) return { isClosed: true, dday: 0 };
   const day = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  return Math.max(0, day);
+  return { isClosed: false, dday: Math.max(0, day) };
 }
 
 function mapToBoardCard(item: CanvasCardItem): BoardCard {
   const c = item.cardContent;
   const mp = c.matchPercent;
+
+  const { isClosed, dday } = calcDday(c.deadlineAt);
 
   return {
     id: String(item.cardId),
@@ -75,7 +78,7 @@ function mapToBoardCard(item: CanvasCardItem): BoardCard {
     y: safeNum((item as any).canvasY, 0),
     data: {
       id: String(item.cardId),
-      dday: calcDday(c.deadlineAt),
+      dday,
       match:
         typeof mp === "number"
           ? { status: "done", rate: mp }
@@ -234,8 +237,8 @@ export default function Canvas({
 
     if (prev !== "interview" && activeTab === "interview") {
       setInterview.mutate(undefined, {
-        onSuccess: (res) => console.log("[INTERVIEW STATUS OK]", res),
-        onError: (e) => {
+        onSuccess: (res: any) => console.log("[INTERVIEW STATUS OK]", res),
+        onError: (e: any) => {
           console.log("[INTERVIEW STATUS FAIL]", e);
           alert(e.message);
         },
@@ -298,7 +301,7 @@ export default function Canvas({
                       updatePos.mutate(
                         { cardId: Number(id), x: nextX, y: nextY },
                         {
-                          onError: (e) => {
+                          onError: (e: any) => {
                             setCards((prev) =>
                               prev.map((p) =>
                                 p.id === id ? { ...p, x: prevX, y: prevY } : p,
