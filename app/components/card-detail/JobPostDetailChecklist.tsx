@@ -10,23 +10,54 @@ import {
   useToggleChecklist,
 } from "@/app/lib/api/checklist.api";
 import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
+import { useLatestMatch } from "@/app/lib/api/match.api";
+
+function pickMatchId(input: unknown): number | null {
+  if (!input || typeof input !== "object") return null;
+
+  // case1) { matchId: 123 }
+  const direct = (input as any).matchId;
+  if (typeof direct === "number" && Number.isFinite(direct) && direct > 0) {
+    return direct;
+  }
+
+  // case2) { data: { matchId: 123 } }
+  const nested = (input as any).data?.matchId;
+  if (typeof nested === "number" && Number.isFinite(nested) && nested > 0) {
+    return nested;
+  }
+
+  // case3) matchId가 string으로 올 수도 있으니 마지막 fallback
+  const maybe = direct ?? nested;
+  const n = Number(maybe);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 type Props = {
   job: JobPostCardData;
 };
 
 export default function JobPostDetailChecklist({ job }: Props) {
-  const matchId =
-    // 예: job.match.matchId (추천)
-    (job as any)?.match?.matchId ??
-    // 예: job.matchId
-    (job as any)?.matchId ??
-    // 예: job.match.id
-    (job as any)?.match?.id ??
-    null;
+  console.log("job passed to checklist:", job);
 
-  const { item, isLoading, isError, error } =
-    useChecklistByMatchIdData(matchId);
+  const cardIdNum = useMemo(() => {
+    const n = Number(job?.id);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [job?.id]);
+
+  // ✅ cardIdNum이 없으면 최신 매칭 조회 자체를 하지 않게 (undefined 전달)
+  const latestMatchQuery = useLatestMatch(cardIdNum ?? undefined);
+
+  const matchIdNum = useMemo(() => {
+    return pickMatchId(latestMatchQuery.data);
+  }, [latestMatchQuery.data]);
+
+  const {
+    item,
+    isLoading,
+    isError,
+    error, // ✅ 너 원본 코드에서 error를 쓰는데 destructuring에 없어서 에러났을 가능성 있음
+  } = useChecklistByMatchIdData(matchIdNum);
 
   const toggleMut = useToggleChecklist();
 
@@ -115,7 +146,7 @@ export default function JobPostDetailChecklist({ job }: Props) {
       </section>
 
       {/* 상태 처리 */}
-      {typeof matchId !== "number" && (
+      {matchIdNum == null && (
         <div className="rounded-xl bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
           아직 매치율 검사를 하지 않았어요!
         </div>
@@ -142,7 +173,7 @@ export default function JobPostDetailChecklist({ job }: Props) {
       {/* 토글 모음 */}
       {!isLoading && !isError && item && sections.length > 0 && (
         <ChecklistDetailToggle
-          key={String(matchId)}
+          key={matchIdNum}
           items={sections}
           onToggleChecklist={onToggleChecklist}
           isToggling={toggleMut.isPending}

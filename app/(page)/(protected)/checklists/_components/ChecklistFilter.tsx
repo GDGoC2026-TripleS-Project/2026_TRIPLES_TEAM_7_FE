@@ -78,9 +78,9 @@ export default function ChecklistFilter({
           "relative h-14 rounded-[28px] px-6",
           "inline-flex items-center gap-3",
           // "bg-white/40",
-          "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
-          "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
-          "after:shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] after:content-['']",
+          // "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
+          // "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
+          // "after:shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] after:content-['']",
           "text-[16px] font-semibold text-gray-800",
         ].join(" ")}
       >
@@ -100,11 +100,11 @@ export default function ChecklistFilter({
       {open && (
         <div
           className={[
-            "absolute left-0 mt-3 z-[120]",
-            "w-[320px] max-w-[calc(100vw-24px)]",
+            "absolute left-0 mt-1 z-[120]",
+            "w-[220px] max-w-[calc(100vw-24px)]",
             "rounded-[26px]",
             "bg-[linear-gradient(0deg,#473f42_0%,#473f42_100&)]",
-            "backdrop-blur-[3px]",
+            "backdrop-blur-[4px]",
             "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
             "before:pointer-events-none before:absolute before:inset-x-100 before:top-2 before:h-6",
             "before:rounded-[28px] before:bg-white/10 before:blur-[1px] before:content-['']",

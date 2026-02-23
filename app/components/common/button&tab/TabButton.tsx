@@ -27,7 +27,7 @@ export default function TabButton({ id, label, isActive, onClick }: Props) {
               "before:bg-gradient-to-b before:from-white/20 before:to-transparent",
               "before:opacity-40 before:pointer-events-none",
             ].join(" ")
-          : ["text-gray-700 hover:text-gray-800"].join(" "),
+          : ["text-black hover:text-gray-800"].join(" "),
       ].join(" ")}
     >
       {label}

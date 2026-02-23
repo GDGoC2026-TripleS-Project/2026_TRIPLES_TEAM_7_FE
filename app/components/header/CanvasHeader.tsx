@@ -105,7 +105,6 @@ export default function CanvasHeader({
             "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
             "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
             "text-[14px] font-semibold",
-            "text-gray-800",
           ].join(" ")}
         >
           <Image src="/icons/filter.svg" alt="filter" width={18} height={18} />
