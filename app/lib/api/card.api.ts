@@ -14,8 +14,7 @@ export type CreateCardResponse = {
   code: string;
   message: string;
   data: {
-    cardId: number;
-    message: string;
+    jobId: string;
   };
 };
 
@@ -23,14 +22,101 @@ export async function createJobCard(payload: CreateCardRequest) {
   return authApi.post<CreateCardResponse>("/api/card/create", payload);
 }
 
-export function useCreateJobCard() {
-  const qc = useQueryClient();
+export type CardCreateJobStatus = "PENDING" | "DONE" | string;
 
+export type CardCreateStatusResponse = {
+  isSuccess: boolean;
+  status: CardCreateJobStatus; // "PENDING" | "DONE"
+  data: null | {
+    cardId: number;
+    message: string;
+  };
+  error: any | null;
+};
+
+export async function getCreateJobStatus(jobId: string) {
+  return authApi.get<CardCreateStatusResponse>(`/api/card/status/${jobId}`);
+}
+
+export async function waitForCardCreateDone(args: {
+  jobId: string;
+  intervalMs?: number;
+  timeoutMs?: number;
+}) {
+  const { jobId, intervalMs = 3000, timeoutMs = 60_000 } = args;
+
+  const startedAt = Date.now();
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (Date.now() - startedAt > timeoutMs) {
+      throw new Error(
+        "카드 생성 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+      );
+    }
+
+    const res = await getCreateJobStatus(jobId);
+
+    if (!res?.isSuccess) {
+      throw new Error(
+        res?.error?.message ?? "카드 생성 상태 조회에 실패했습니다.",
+      );
+    }
+
+    if (res.status === "DONE") {
+      if (!res.data?.cardId) {
+        throw new Error("카드 생성 완료 응답에 cardId가 없습니다.");
+      }
+      return res; // DONE 응답 그대로 반환
+    }
+
+    // PENDING이면 대기 후 재조회
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+
+export function useCreateJobStatus(jobId?: string, enabled = true) {
+  return useQuery<CardCreateStatusResponse, Error>({
+    queryKey: ["cardCreateStatus", jobId],
+    queryFn: () => getCreateJobStatus(jobId as string),
+    enabled: !!jobId && enabled,
+    // 권장 3초 간격 폴링 (PENDING일 때만 유지하고 싶다면 아래처럼 함수로도 가능)
+    refetchInterval: (q) => (q.state.data?.status === "PENDING" ? 3000 : false),
+    staleTime: 0,
+  });
+}
+
+// export function useCreateJobCard() {
+//   const qc = useQueryClient();
+
+//   return useMutation<CardCreateStatusResponse, Error, CreateCardRequest>({
+//     mutationFn: async (payload) => {
+//       // 1) 생성 요청 → jobId 받기
+//       const accepted = await createJobCard(payload);
+
+//       if (!accepted?.isSuccess || !accepted?.data?.jobId) {
+//         throw new Error(accepted?.message ?? "카드 생성 요청에 실패했습니다.");
+//       }
+
+//       // 2) jobId로 DONE까지 폴링
+//       const doneRes = await waitForCardCreateDone({
+//         jobId: accepted.data.jobId,
+//         intervalMs: 3000,
+//         timeoutMs: 60_000, // 필요시 늘리기
+//       });
+
+//       return doneRes;
+//     },
+//     onSuccess: () => {
+//       // DONE 되면 캔버스 카드 다시 불러오기
+//       qc.invalidateQueries({ queryKey: ["canvasCards"] });
+//     },
+//   });
+// }
+
+export function useCreateJobCard() {
   return useMutation<CreateCardResponse, Error, CreateCardRequest>({
     mutationFn: createJobCard,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["canvasCards"] });
-    },
   });
 }
 

@@ -50,6 +50,7 @@ type Props = {
   }) => React.ReactNode;
 
   renderFixedOverlays?: (args: { cards: BoardCard[] }) => React.ReactNode;
+  contextCardId?: string | null;
 };
 
 function safeNum(n: any, fallback = 0) {
@@ -188,6 +189,7 @@ export default function Canvas({
   onCardContextMenu,
   renderBoardExtras,
   renderFixedOverlays,
+  contextCardId = null,
 }: Props) {
   const { data: apiCards, isLoading } = useCanvasCards();
   const updatePos = useUpdateCanvasCardPosition();
@@ -280,6 +282,7 @@ export default function Canvas({
 
               {cards.map((c) => {
                 const isActive = activeCardId === c.id;
+                const isContext = contextCardId === c.id;
 
                 return (
                   <DraggableJobCard
@@ -316,7 +319,9 @@ export default function Canvas({
                     onContextMenu={(rect) =>
                       onCardContextMenu?.({ card: c, rect })
                     }
-                    className={isActive ? "z-[60]" : "z-[10]"}
+                    className={
+                      isContext ? "z-[121]" : isActive ? "z-[60]" : "z-[10]"
+                    }
                     isActive={isActive}
                   />
                 );

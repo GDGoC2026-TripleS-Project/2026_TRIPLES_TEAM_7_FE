@@ -142,11 +142,11 @@ export default function InterviewQuestionsCard({
           </div>
         )}
 
-        {!isLoading && questions.length === 0 && (
+        {/* {!isLoading && questions.length === 0 && (
           <div className="rounded-2xl border border-black/5 bg-white px-4 py-5 text-[14px] text-gray-500">
             아직 질문이 없어요. 새로고침을 눌러 생성해보세요.
           </div>
-        )}
+        )} */}
 
         {!isLoading &&
           questions.map((q, idx) => (

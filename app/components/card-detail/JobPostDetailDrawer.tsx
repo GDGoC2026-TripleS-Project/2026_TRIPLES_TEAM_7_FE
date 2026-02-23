@@ -104,7 +104,7 @@ function JobPostDetailDrawerInner({
         </div>
 
         {/* Body (scroll) */}
-        <div className="h-[calc(100%-110px)] overflow-y-auto px-7 pb-10 pt-7">
+        <div className="h-[calc(100%-110px)] overflow-y-auto px-7 pb-5 pt-7">
           {tab === "info" && (
             <>
               {isLoading && (

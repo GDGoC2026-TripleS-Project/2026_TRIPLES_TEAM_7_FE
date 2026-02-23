@@ -1,9 +1,9 @@
 "use client";
 
 import { useAuthStore } from "@/app/lib/api/auth.store";
-import { useCreateJobCard } from "@/app/lib/api/card.api";
+import { useCreateJobCard, useCreateJobStatus } from "@/app/lib/api/card.api";
 import Image from "next/image";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type Props = {
   open: boolean;
@@ -29,8 +29,10 @@ export default function LinkPanelContent({
   closeOnSuccess = false,
 }: Props) {
   const [url, setUrl] = useState("");
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const createCard = useCreateJobCard();
+  const statusQuery = useCreateJobStatus(jobId ?? undefined, !!jobId);
 
   const { hasHydrated, accessToken, refreshToken } = useAuthStore();
 
@@ -47,16 +49,33 @@ export default function LinkPanelContent({
     return !!accessToken || !!refreshToken;
   }, [hasHydrated, hasText, isUrlOk, accessToken, refreshToken]);
 
+  const isCreating =
+    createCard.isPending || statusQuery.data?.status === "PENDING";
+
+  const doneCardId =
+    statusQuery.data?.status === "DONE"
+      ? statusQuery.data?.data?.cardId
+      : undefined;
+
+  useEffect(() => {
+    if (!jobId) return;
+    if (statusQuery.data?.status !== "DONE") return;
+
+    setUrl("");
+    setJobId(null);
+
+    if (closeOnSuccess) onClose();
+  }, [jobId, statusQuery.data?.status, closeOnSuccess, onClose]);
+
   const onSubmit = () => {
-    if (!canSubmit || createCard.isPending) return;
+    if (!canSubmit || isCreating) return;
 
     createCard.mutate(
       { url: trimmed },
       {
         onSuccess: (res) => {
-          console.log("카드 생성 성공 cardId:", res.data.cardId);
-          setUrl("");
-          if (closeOnSuccess) onClose();
+          // ✅ 이제 cardId가 아니라 jobId를 받음
+          setJobId(res.data?.jobId);
         },
         onError: (e) => {
           alert(e.message);
@@ -121,13 +140,13 @@ export default function LinkPanelContent({
                         ? "border-red-400/60 focus:border-red-400/60"
                         : "",
                     ].join(" ")}
+                    disabled={isCreating}
                   />
 
                   {canSubmit && (
                     <button
-                      type="button"
                       onClick={onSubmit}
-                      disabled={createCard.isPending}
+                      disabled={isCreating}
                       className={[
                         "absolute right-2 top-1/2 -translate-y-1/2",
                         "h-8 w-8 rounded-lg bg-white/90 hover:bg-white",
@@ -160,6 +179,12 @@ export default function LinkPanelContent({
                 {!isUrlOk && canSubmit && (
                   <p className="mt-2 text-[12px] text-red-300">
                     올바른 URL 형식(http/https)을 입력해주세요.
+                  </p>
+                )}
+
+                {jobId && statusQuery.data?.status === "PENDING" && (
+                  <p className="mt-2 text-[12px] text-white/70">
+                    카드 생성 중입니다... (잠시만 기다려주세요)
                   </p>
                 )}
 

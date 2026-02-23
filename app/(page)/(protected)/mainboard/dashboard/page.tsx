@@ -83,15 +83,15 @@ export default function DashboardPage() {
     };
   }, [deleteMenu]);
 
-  const drawerOpen = !!openCardId;
+  const drawerOpen = !!openCardId && !deleteMenu && !confirmOpen;
 
   const deleteButtonStyle = useMemo(() => {
     if (!deleteMenu) return null;
     const r = deleteMenu.rect;
     return {
       left: r.left + r.width / 2,
-      top: r.top - 14, // 카드 상단 살짝 위
-      transform: "translate(-50%, -100%)",
+      top: r.top,
+      transform: "translate(-50%, calc(-100% - 12px))",
     } as const;
   }, [deleteMenu]);
 
@@ -106,33 +106,36 @@ export default function DashboardPage() {
         dimWhenActive={false}
         onCardContextMenu={({ card, rect }) => {
           setDeleteMenu({ cardId: card.id, rect, job: card.data });
-          // drawer 열려있으면 그대로 두고, 원하면 여기서 닫도록 변경 가능
+
+          setOpenCardId(null);
+          setSelectedJob(null);
         }}
-        renderBoardExtras={() => (
+        renderBoardExtras={() => null}
+        renderFixedOverlays={() => (
           <>
-            {/* ✅ deleteMenu 오버레이 (카드 + 버튼만 살리고 주변 딤) */}
+            <JobPostDetailDrawer
+              open={drawerOpen}
+              onClose={() => {
+                setOpenCardId(null);
+                setSelectedJob(null);
+              }}
+              job={selectedJob}
+              showOverlay={false}
+            />
+
             {deleteMenu && (
               <div className="fixed inset-0 z-[120]">
-                {/* 오버레이: 클릭 시 닫기 */}
                 <div
                   className="absolute inset-0 bg-black/30"
                   onPointerDown={() => setDeleteMenu(null)}
                 />
 
-                {/* 삭제 버튼 */}
                 <button
                   type="button"
-                  className={[
-                    "fixed z-[130]",
-                    "h-10 rounded-[10px] px-6",
-                    "bg-red-500 text-white font-semibold shadow-lg",
-                    "hover:bg-red-600",
-                  ].join(" ")}
+                  className="fixed z-[130] h-10 rounded-[10px] px-6 bg-red-500 text-white font-semibold shadow-lg hover:bg-red-600"
                   style={deleteButtonStyle ?? undefined}
                   onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => {
-                    setConfirmOpen(true);
-                  }}
+                  onClick={() => setConfirmOpen(true)}
                 >
                   삭제하기
                 </button>
@@ -140,17 +143,7 @@ export default function DashboardPage() {
             )}
           </>
         )}
-        renderFixedOverlays={() => (
-          <JobPostDetailDrawer
-            open={drawerOpen}
-            onClose={() => {
-              setOpenCardId(null);
-              setSelectedJob(null);
-            }}
-            job={selectedJob}
-            showOverlay={false}
-          />
-        )}
+        contextCardId={deleteMenu?.cardId ?? null}
       />
 
       <ConfirmModal
