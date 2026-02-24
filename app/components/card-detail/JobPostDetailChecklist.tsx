@@ -147,7 +147,7 @@ export default function JobPostDetailChecklist({ job }: Props) {
 
       {/* 상태 처리 */}
       {matchIdNum == null && (
-        <div className="rounded-xl bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+        <div className="rounded-xl bg-yellow-50 px-4 py-3 text-sm text-yellow-800 text-center">
           아직 매치율 검사를 하지 않았어요!
         </div>
       )}

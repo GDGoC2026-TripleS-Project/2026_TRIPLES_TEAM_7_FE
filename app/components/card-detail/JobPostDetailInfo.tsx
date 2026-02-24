@@ -7,7 +7,6 @@ import DdayBadge from "../common/badge&label/DdayBadge";
 import MatchRateBadge from "../common/badge&label/MatchRateBadge";
 import KeywordLabel from "../common/badge&label/KeywordLabel";
 
-// ✅ 상세 DTO 타입 (card.api.ts에서 export 해둔 타입 사용 권장)
 import type { CardDetailDto } from "@/app/lib/api/card.api";
 import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
 
@@ -18,7 +17,6 @@ export default function JobPostDetailInfo({
   job: JobPostCardData;
   detail?: CardDetailDto;
 }) {
-  // ✅ detail이 있으면 detail 우선
   const title = detail?.jobTitle ?? job.title ?? "";
   const meta = detail
     ? `${detail.companyName} · ${mapEmploymentTypeToLabel(detail.employmentType)}`
@@ -33,7 +31,6 @@ export default function JobPostDetailInfo({
 
     const preferred = detail?.preferStack?.length ? detail.preferStack : [];
 
-    // 서버에 경력/근무일이 따로 오니까 우선 그걸 사용
     const career = detail?.experienceLevel ? [detail.experienceLevel] : [];
 
     return { required, preferred, career };
@@ -73,7 +70,7 @@ export default function JobPostDetailInfo({
 
       <div className="my-5 h-px w-full bg-black/5" />
 
-      {/* AI 분석(현재는 요약 bullets 사용) */}
+      {/* AI 분석 */}
       <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-500">
         <Image src="/icons/des_ai.svg" alt="ai" width={16} height={16} />
         <span>AI 분석</span>
@@ -169,7 +166,7 @@ function ConditionRow({
 }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="flex w-[68px] items-center gap-2 text-[13px] text-gray-600">
+      <div className="flex w-[68px] gap-2 text-[13px] text-gray-600">
         <Image src={iconSrc} alt={label} width={16} height={16} />
         <span className="font-semibold whitespace-nowrap">{label}</span>
       </div>
@@ -208,7 +205,7 @@ function DetailRow({
       </div>
       {link ? (
         <a
-          className="text-[13px] font-semibold text-gray-900 ml-6 underline break-all"
+          className="text-[13px] font-semibold text-gray-900 underline break-all"
           href={value}
           target="_blank"
           rel="noreferrer"

@@ -13,6 +13,8 @@ type Props = {
   scale: number;
   setGesturesBlocked: (v: boolean) => void;
 
+  gesturesLocked?: boolean;
+
   onMove: (id: string, nextX: number, nextY: number) => void;
 
   onDrop?: (args: {
@@ -40,6 +42,7 @@ export default function DraggableJobCard({
   data,
   scale,
   setGesturesBlocked,
+  gesturesLocked = false,
   onMove,
   onDrop,
   onClick,
@@ -72,11 +75,12 @@ export default function DraggableJobCard({
       style={{
         left: safeX,
         top: safeY,
-        cursor: isDragging ? "grabbing" : "grab",
+        cursor: gesturesLocked ? "default" : isDragging ? "grabbing" : "grab",
         userSelect: "none",
         touchAction: "none",
       }}
       onContextMenu={(e) => {
+        if (gesturesLocked) return;
         e.preventDefault();
         e.stopPropagation();
         const rect = (
@@ -85,6 +89,8 @@ export default function DraggableJobCard({
         onContextMenu?.(rect);
       }}
       onPointerDown={(e) => {
+        if (gesturesLocked) return;
+
         e.stopPropagation();
         e.preventDefault();
 
@@ -122,6 +128,8 @@ export default function DraggableJobCard({
         onMove(id, nx, ny);
       }}
       onPointerUp={(e) => {
+        if (gesturesLocked) return;
+
         e.stopPropagation();
         setIsDragging(false);
         setGesturesBlocked(false);
@@ -150,6 +158,7 @@ export default function DraggableJobCard({
         onClick?.(id);
       }}
       onPointerCancel={() => {
+        if (gesturesLocked) return;
         setIsDragging(false);
         setGesturesBlocked(false);
       }}

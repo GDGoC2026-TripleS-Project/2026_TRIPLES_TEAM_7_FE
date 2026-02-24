@@ -18,7 +18,6 @@ import { useSetAllCardsToInterview } from "@/app/lib/api/interview.api";
 import { mapEmploymentTypeToLabel } from "@/app/lib/constants/mapEmploymentType";
 
 export type TabId = "dashboard" | "interview";
-
 type SortId = "deadline" | "distance" | "salary" | "match";
 
 export type BoardCard = {
@@ -72,7 +71,7 @@ function mapToBoardCard(item: CanvasCardItem): BoardCard {
   const c = item.cardContent;
   const mp = c.matchPercent;
 
-  const { isClosed, dday } = calcDday(c.deadlineAt);
+  const { dday } = calcDday(c.deadlineAt);
 
   return {
     id: String(item.cardId),
@@ -100,17 +99,14 @@ function mapToBoardCard(item: CanvasCardItem): BoardCard {
 }
 
 function normalizeCardIds(cardIds: unknown): number[] {
-  // 이미 number[]이면 그대로
   if (Array.isArray(cardIds)) {
     return cardIds
       .map((v) => (typeof v === "number" ? v : Number(v)))
       .filter((n) => Number.isFinite(n));
   }
 
-  // 단일 number
   if (typeof cardIds === "number") return [cardIds];
 
-  // "4,5,6" 같은 문자열
   if (typeof cardIds === "string") {
     return cardIds
       .split(",")
@@ -118,7 +114,6 @@ function normalizeCardIds(cardIds: unknown): number[] {
       .filter((n) => Number.isFinite(n));
   }
 
-  // 혹시 { cardIds: [...] } 같은 형태로 들어오는 경우
   if (cardIds && typeof cardIds === "object") {
     const maybe = (cardIds as any).cardIds ?? (cardIds as any).ids;
     if (Array.isArray(maybe)) return normalizeCardIds(maybe);
@@ -150,9 +145,7 @@ function buildAutoLayoutPositions(args: {
   const CARD_H = 320;
   const GAP_X = 40;
   const GAP_Y = 10;
-
   const GROUP_GAP_Y = 20;
-
   const COLS = 3;
 
   const startX = 0;
@@ -178,6 +171,127 @@ function buildAutoLayoutPositions(args: {
   }
 
   return nextPosById;
+}
+
+function CanvasInner(props: {
+  scale: number;
+  setGesturesBlocked: (blocked: boolean) => void;
+  gesturesLocked: boolean;
+
+  dimWhenActive: boolean;
+  activeCardId?: string | null;
+
+  isLoading: boolean;
+  isInterviewPending: boolean;
+
+  cards: BoardCard[];
+  setCards: React.Dispatch<React.SetStateAction<BoardCard[]>>;
+
+  updatePos: ReturnType<typeof useUpdateCanvasCardPosition>;
+  onCardClick?: (card: BoardCard) => void;
+  onCardContextMenu?: (args: { card: BoardCard; rect: DOMRect }) => void;
+
+  renderBoardExtras?: (args: {
+    ctx: RenderCtx;
+    cards: BoardCard[];
+  }) => React.ReactNode;
+  contextCardId?: string | null;
+}) {
+  const {
+    scale,
+    setGesturesBlocked,
+    gesturesLocked,
+    dimWhenActive,
+    activeCardId,
+    isLoading,
+    isInterviewPending,
+    cards,
+    setCards,
+    updatePos,
+    onCardClick,
+    onCardContextMenu,
+    renderBoardExtras,
+    contextCardId,
+  } = props;
+
+  useEffect(() => {
+    setGesturesBlocked(gesturesLocked);
+  }, [gesturesLocked, setGesturesBlocked]);
+
+  const ctx: RenderCtx = { scale, setGesturesBlocked };
+
+  return (
+    <>
+      {dimWhenActive && activeCardId && (
+        <div className="pointer-events-none absolute inset-0 z-[50] bg-black/50" />
+      )}
+
+      {isLoading && (
+        <div className="absolute left-210 top-90 z-[80] rounded-xl bg-white/70 px-3 py-2 text-lg">
+          불러오는 중...
+        </div>
+      )}
+
+      {isInterviewPending && (
+        <div className="absolute left-210 top-[140px] z-[90] rounded-xl bg-white/80 px-3 py-2 text-sm text-gray-700">
+          면접 시뮬레이션 준비 중...
+        </div>
+      )}
+
+      {cards.map((c) => {
+        const isActive = activeCardId === c.id;
+        const isContext = contextCardId === c.id;
+
+        const dimOthers = !!activeCardId; // 패널 열렸을 때만 dim 처리
+        const dimClass = dimOthers && !isActive ? "opacity-35" : "opacity-100";
+
+        return (
+          <DraggableJobCard
+            key={c.id}
+            id={c.id}
+            x={c.x}
+            y={c.y}
+            data={c.data}
+            scale={scale}
+            setGesturesBlocked={setGesturesBlocked}
+            onMove={(id, nextX, nextY) => {
+              setCards((prev) =>
+                prev.map((p) =>
+                  p.id === id ? { ...p, x: nextX, y: nextY } : p,
+                ),
+              );
+            }}
+            onDrop={({ id, prevX, prevY, nextX, nextY }) => {
+              updatePos.mutate(
+                { cardId: Number(id), x: nextX, y: nextY },
+                {
+                  onError: (e: any) => {
+                    setCards((prev) =>
+                      prev.map((p) =>
+                        p.id === id ? { ...p, x: prevX, y: prevY } : p,
+                      ),
+                    );
+                    alert(e.message);
+                  },
+                },
+              );
+            }}
+            onClick={() => onCardClick?.(c)}
+            onContextMenu={(rect) => onCardContextMenu?.({ card: c, rect })}
+            className={[
+              "transition-opacity duration-150",
+              dimClass,
+              isContext ? "z-[121]" : isActive ? "z-[90]" : "z-[10]",
+            ].join(" ")}
+            isActive={isActive}
+            gesturesLocked={gesturesLocked}
+          />
+        );
+      })}
+
+      {renderBoardExtras?.({ ctx, cards })}
+    </>
+  );
 }
 
 export default function Canvas({
@@ -226,7 +340,6 @@ export default function Canvas({
         cardsById,
       });
 
-      // nextPosById에 포함된 카드만 위치 갱신, 나머지는 그대로 둠
       return prev.map((c) => {
         const nextPos = nextPosById.get(c.id);
         return nextPos ? { ...c, x: nextPos.x, y: nextPos.y } : c;
@@ -260,83 +373,24 @@ export default function Canvas({
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       <InfiniteCanvas backgroundClassName={backgroundClassName}>
-        {({ scale, setGesturesBlocked }) => {
-          useEffect(() => {
-            setGesturesBlocked(gesturesLocked);
-          }, [gesturesLocked, setGesturesBlocked]);
-
-          const ctx = { scale, setGesturesBlocked };
-
-          return (
-            <>
-              {dimWhenActive && activeCardId && (
-                <div className="pointer-events-none absolute inset-0 z-[50] bg-black/50" />
-              )}
-
-              {isLoading && (
-                <div className="absolute left-210 top-90 z-[80] rounded-xl bg-white/70 px-3 py-2 text-lg">
-                  불러오는 중...
-                </div>
-              )}
-
-              {/* 이상하면 빼기 */}
-              {setInterview.isPending && (
-                <div className="absolute left-210 top-[140px] z-[90] rounded-xl bg-white/80 px-3 py-2 text-sm text-gray-700">
-                  면접 시뮬레이션 준비 중...
-                </div>
-              )}
-
-              {cards.map((c) => {
-                const isActive = activeCardId === c.id;
-                const isContext = contextCardId === c.id;
-
-                return (
-                  <DraggableJobCard
-                    key={c.id}
-                    id={c.id}
-                    x={c.x}
-                    y={c.y}
-                    data={c.data}
-                    scale={scale}
-                    setGesturesBlocked={setGesturesBlocked}
-                    onMove={(id, nextX, nextY) => {
-                      setCards((prev) =>
-                        prev.map((p) =>
-                          p.id === id ? { ...p, x: nextX, y: nextY } : p,
-                        ),
-                      );
-                    }}
-                    onDrop={({ id, prevX, prevY, nextX, nextY }) => {
-                      updatePos.mutate(
-                        { cardId: Number(id), x: nextX, y: nextY },
-                        {
-                          onError: (e: any) => {
-                            setCards((prev) =>
-                              prev.map((p) =>
-                                p.id === id ? { ...p, x: prevX, y: prevY } : p,
-                              ),
-                            );
-                            alert(e.message);
-                          },
-                        },
-                      );
-                    }}
-                    onClick={() => onCardClick?.(c)}
-                    onContextMenu={(rect) =>
-                      onCardContextMenu?.({ card: c, rect })
-                    }
-                    className={
-                      isContext ? "z-[121]" : isActive ? "z-[60]" : "z-[10]"
-                    }
-                    isActive={isActive}
-                  />
-                );
-              })}
-
-              {renderBoardExtras?.({ ctx, cards })}
-            </>
-          );
-        }}
+        {({ scale, setGesturesBlocked }) => (
+          <CanvasInner
+            scale={scale}
+            setGesturesBlocked={setGesturesBlocked}
+            gesturesLocked={gesturesLocked}
+            dimWhenActive={dimWhenActive}
+            activeCardId={activeCardId}
+            isLoading={isLoading}
+            isInterviewPending={setInterview.isPending}
+            cards={cards}
+            setCards={setCards}
+            updatePos={updatePos}
+            onCardClick={onCardClick}
+            onCardContextMenu={onCardContextMenu}
+            renderBoardExtras={renderBoardExtras}
+            contextCardId={contextCardId}
+          />
+        )}
       </InfiniteCanvas>
 
       <div

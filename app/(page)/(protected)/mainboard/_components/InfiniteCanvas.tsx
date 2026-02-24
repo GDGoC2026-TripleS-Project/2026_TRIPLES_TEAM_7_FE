@@ -57,7 +57,13 @@ export default function InfiniteCanvas({
   const handleTransformed = (
     ref: ReactZoomPanPinchRef,
     state: { scale: number; positionX: number; positionY: number },
-  ) => onTransformed(ref, state);
+  ) => {
+    onTransformed(ref, state);
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("canvas:transform"));
+    }
+  };
 
   const renderCtx: RenderCtx = {
     scale,
@@ -83,15 +89,16 @@ export default function InfiniteCanvas({
           ref={apiRef}
           minScale={minScale}
           maxScale={maxScale}
-          wheel={{ disabled: true }}
-          doubleClick={{ disabled: true }}
-          panning={{ disabled: true }}
-          pinch={{ step: 5 }}
           limitToBounds={false}
           alignmentAnimation={{ disabled: true }}
           velocityAnimation={{ disabled: true }}
           zoomAnimation={{ disabled: true }}
           onTransformed={handleTransformed}
+          disabled={gesturesBlocked}
+          wheel={{ disabled: gesturesBlocked }}
+          doubleClick={{ disabled: gesturesBlocked }}
+          panning={{ disabled: gesturesBlocked }}
+          pinch={{ disabled: gesturesBlocked }}
         >
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "100%" }}

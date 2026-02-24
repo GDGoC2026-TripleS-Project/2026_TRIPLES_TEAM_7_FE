@@ -1,7 +1,12 @@
 "use client";
 
 import { useAuthStore } from "@/app/lib/api/auth.store";
-import { useCreateJobCard, useCreateJobStatus } from "@/app/lib/api/card.api";
+import {
+  getCardDetail,
+  useCreateJobCard,
+  useCreateJobStatus,
+} from "@/app/lib/api/card.api";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -33,6 +38,7 @@ export default function LinkPanelContent({
 
   const createCard = useCreateJobCard();
   const statusQuery = useCreateJobStatus(jobId ?? undefined, !!jobId);
+  const qc = useQueryClient();
 
   const { hasHydrated, accessToken, refreshToken } = useAuthStore();
 
@@ -52,20 +58,59 @@ export default function LinkPanelContent({
   const isCreating =
     createCard.isPending || statusQuery.data?.status === "PENDING";
 
-  const doneCardId =
-    statusQuery.data?.status === "DONE"
-      ? statusQuery.data?.data?.cardId
-      : undefined;
-
   useEffect(() => {
     if (!jobId) return;
     if (statusQuery.data?.status !== "DONE") return;
 
-    setUrl("");
-    setJobId(null);
+    const newCardId = statusQuery.data?.data?.cardId;
+    if (!newCardId) return;
 
-    if (closeOnSuccess) onClose();
-  }, [jobId, statusQuery.data?.status, closeOnSuccess, onClose]);
+    const run = async () => {
+      try {
+        const detailRes = await getCardDetail(newCardId);
+        const detail = detailRes.data;
+
+        const newCanvasItem = {
+          cardId: detail.id,
+          cardContent: {
+            jobPostId: detail.jobPostId,
+            deadlineAt: detail.deadlineAt,
+            jobTitle: detail.jobTitle,
+            companyName: detail.companyName,
+            employmentType: detail.employmentType,
+            roleText: detail.roleText,
+            necessaryStack: detail.necessaryStack ?? [],
+            matchPercent: detail.matchPercent ?? null,
+          },
+          canvasX: 0,
+          canvasY: 0,
+        };
+
+        qc.setQueryData(["canvasCards"], (old: any) => {
+          if (!old) return [newCanvasItem];
+
+          const exists = old.some(
+            (c: any) => String(c.cardId) === String(newCardId),
+          );
+          if (exists) return old;
+
+          return [newCanvasItem, ...old];
+        });
+
+        qc.invalidateQueries({ queryKey: ["canvasCards"] });
+        qc.refetchQueries({ queryKey: ["canvasCards"] });
+      } catch (e) {
+        console.error("카드 optimistic prepend 실패:", e);
+      }
+
+      setUrl("");
+      setJobId(null);
+
+      if (closeOnSuccess) onClose();
+    };
+
+    run();
+  }, [jobId, statusQuery.data?.status, closeOnSuccess, onClose, qc]);
 
   const onSubmit = () => {
     if (!canSubmit || isCreating) return;
@@ -74,7 +119,6 @@ export default function LinkPanelContent({
       { url: trimmed },
       {
         onSuccess: (res) => {
-          // ✅ 이제 cardId가 아니라 jobId를 받음
           setJobId(res.data?.jobId);
         },
         onError: (e) => {
