@@ -96,7 +96,7 @@ export default function InfiniteCanvas({
           onTransformed={handleTransformed}
           disabled={gesturesBlocked}
           wheel={{ disabled: gesturesBlocked }}
-          doubleClick={{ disabled: gesturesBlocked }}
+          doubleClick={{ disabled: true }}
           panning={{ disabled: gesturesBlocked }}
           pinch={{ disabled: gesturesBlocked }}
         >
