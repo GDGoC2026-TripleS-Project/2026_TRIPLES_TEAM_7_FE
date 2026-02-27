@@ -21,7 +21,7 @@ export default function ButtonRounded({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "h-[40px] w-[69px] rounded-full px-8",
+        "h-[40px] rounded-full px-8",
         "bg-main text-white text-[16px] flex items-center justify-center font-semibold whitespace-nowrap",
         "transition",
         disabled ? "opacity-40 cursor-not-allowed" : "hover:opacity-90",

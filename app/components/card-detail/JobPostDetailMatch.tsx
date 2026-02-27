@@ -45,26 +45,30 @@ export default function JobPostDetailMatch({ job }: Props) {
         id: "good",
         label: "공고와 잘 맞아요!",
         iconSrc: "/icons/match-good.svg",
-        details: (latest.strengthTop3 ?? []).map((x) => x.comment),
+        details: (latest.strengthTop3 ?? []).map((x) => ({
+          text: x.comment,
+        })),
         defaultOpen: true,
       },
       {
         id: "improve",
         label: "보완하면 좋아요!",
         iconSrc: "/icons/match-improve.svg",
-        rightIconSrc: "/icons/info.svg",
-        details: (latest.gapTop3 ?? []).map(
-          (x) => `${x.isRequired ? "[필수] " : ""}${x.comment}`,
-        ),
+        details: (latest.gapTop3 ?? []).map((x) => ({
+          text: x.comment,
+          required: !!x.isRequired,
+        })),
       },
       {
         id: "hard",
         label: "현재 바꾸기 어려워요.",
         iconSrc: "/icons/match-hard.svg",
-        details: (latest.riskTop3 ?? []).map((x) => x.comment),
+        details: (latest.riskTop3 ?? []).map((x) => ({
+          text: x.comment,
+        })),
       },
     ];
-  }, [latest]);
+  }, [hasMatchPercent, latest]);
 
   const canRun =
     isValidCardId &&

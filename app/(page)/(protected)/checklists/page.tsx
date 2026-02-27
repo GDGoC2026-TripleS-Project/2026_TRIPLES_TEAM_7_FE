@@ -51,7 +51,7 @@ export default function ChecklistsPage() {
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
-        <div className="sticky top-0 z-[60]">
+        <div className="top-0 z-[60] mb-3">
           <div className="mx-auto max-w-6xl px-6">
             <div className="flex justify-end pt-6">
               <ChecklistFilter value={filter} onChange={setFilter} />

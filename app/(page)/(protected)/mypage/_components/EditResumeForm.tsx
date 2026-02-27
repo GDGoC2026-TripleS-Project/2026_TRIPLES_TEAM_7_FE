@@ -69,11 +69,22 @@ export default function EditResumeForm({
             }));
           }}
           onRemove={() => {
-            setResume((prev) => ({
-              ...prev,
-              file: undefined,
-              name: existingLabel, // 기존 표시 유지
-            }));
+            setResume((prev) => {
+              if (prev.file) {
+                return {
+                  ...prev,
+                  file: undefined,
+                  name: prev.name,
+                };
+              }
+
+              return {
+                ...prev,
+                url: undefined,
+                name: undefined,
+                file: undefined,
+              };
+            });
           }}
           onOpen={() => {
             if (!resume.url) return;
@@ -88,7 +99,7 @@ export default function EditResumeForm({
           </p>
         )}
 
-        <div className="mt-10 flex justify-center">
+        <div className="mt-10 flex justify-center items-center">
           <ButtonRounded
             onClick={() => onSubmit(resume)}
             disabled={isLoading || !canSubmit}

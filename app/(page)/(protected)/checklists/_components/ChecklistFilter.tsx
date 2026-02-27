@@ -75,13 +75,10 @@ export default function ChecklistFilter({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={[
-          "relative h-14 rounded-[28px] px-6",
+          "relative h-12 rounded-[28px] px-6",
           "inline-flex items-center gap-3",
-          // "bg-white/40",
-          // "shadow-[0_10px_24px_rgba(0,0,0,0.09)]",
-          // "after:pointer-events-none after:absolute after:inset-0 after:rounded-[28px]",
-          // "after:shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] after:content-['']",
-          "text-[16px] font-semibold text-gray-800",
+          "text-[16px] font-semibold text-gray-800 hover:bg-gray-100",
+          open ? "bg-gray-100" : "transparent",
         ].join(" ")}
       >
         <Image src="/icons/filter.svg" alt="filter" width={18} height={18} />
@@ -100,7 +97,7 @@ export default function ChecklistFilter({
       {open && (
         <div
           className={[
-            "absolute left-0 mt-1 z-[120]",
+            "absolute mt-3 z-[120]",
             "w-[220px] max-w-[calc(100vw-24px)]",
             "rounded-[26px]",
             "bg-[linear-gradient(0deg,#473f42_0%,#473f42_100&)]",

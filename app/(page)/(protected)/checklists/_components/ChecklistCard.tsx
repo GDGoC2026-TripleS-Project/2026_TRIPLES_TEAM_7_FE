@@ -99,7 +99,7 @@ export default function ChecklistCard({ data }: Props) {
   };
 
   return (
-    <div className="rounded-[20px] bg-white p-6 shadow-sm border border-gray-100">
+    <div className="rounded-[20px] bg-white p-5 shadow-sm border border-gray-100">
       {/* 헤더 */}
       <div className="flex items-start justify-between">
         <div>
@@ -110,7 +110,7 @@ export default function ChecklistCard({ data }: Props) {
             {done}/{total}
           </div>
 
-          <h3 className="mt-1 text-lg font-semibold text-gray-900">
+          <h3 className="mt-2 text-lg font-semibold text-gray-900">
             {data.title}
           </h3>
           <p className="text-sm text-gray-400"> {data.meta}</p>
@@ -119,7 +119,7 @@ export default function ChecklistCard({ data }: Props) {
         <MatchRateBadge status="done" rate={data.rate} />
       </div>
 
-      <div className="my-4 h-px w-full bg-black/5" />
+      <div className="my-3 h-px w-full bg-black/4" />
 
       {/* 키워드 */}
       <div className="mt-3 flex flex-wrap gap-2">
@@ -134,10 +134,10 @@ export default function ChecklistCard({ data }: Props) {
         ))}
       </div>
 
-      <div className="my-4 h-px w-full bg-black/5" />
+      <div className="my-3 h-px w-full bg-black/4" />
 
       {open && (
-        <div className="mt-6 space-y-1 pb-10">
+        <div className="mt-6 space-y-1 pb-3">
           {tasks.map((task) => {
             const checked = !!task.done;
 
@@ -183,9 +183,12 @@ export default function ChecklistCard({ data }: Props) {
         <button
           onClick={onToggleOpen}
           className={[
-            "absolute left-1/2 -translate-x-1/2",
-            "transition-all duration-300 ease-out",
-            open ? "bottom-0 translate-y-full mt-6 mb-5" : "top-0",
+            open ? "pb-1.5" : "pb-0",
+            "pt-2",
+            "w-full",
+            "flex items-center justify-center",
+            "rounded-[12px]",
+            "transition-colors",
           ].join(" ")}
         >
           <Image

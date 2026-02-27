@@ -136,18 +136,12 @@ export default function InterviewQuestionsCard({
       </div>
 
       {/* 본문 */}
-      <div className="space-y-4 px-5 py-4 min-h-[310px]">
+      <div className="space-y-4 px-5 py-4">
         {isLoading && (
-          <div className="rounded-2xl flex justify-center mt-24 bg-white px-4 py-5 text-[16px] text-gray-500">
+          <div className="rounded-2xl flex justify-center min-h-[230px] items-center bg-white px-4 py-5 text-[16px] text-gray-500">
             질문을 준비 중이에요...
           </div>
         )}
-
-        {/* {!isLoading && questions.length === 0 && (
-          <div className="rounded-2xl border border-black/5 bg-white px-4 py-5 text-[14px] text-gray-500">
-            아직 질문이 없어요. 새로고침을 눌러 생성해보세요.
-          </div>
-        )} */}
 
         {!isLoading &&
           questions.map((q, idx) => (

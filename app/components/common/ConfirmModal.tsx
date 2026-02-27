@@ -46,7 +46,7 @@ export default function ConfirmModal({
       <div className="absolute inset-0 bg-black/30" onPointerDown={onCancel} />
 
       {/* modal */}
-      <div className="absolute left-1/2 top-1/2 w-[720px] max-w-[calc(100vw-40px)] -translate-x-1/2 -translate-y-1/2 rounded-[18px] bg-white px-10 py-8 shadow-2xl">
+      <div className="absolute left-1/2 top-1/2 w-[720px] max-w-[calc(100vw-40px)] -translate-x-1/2 -translate-y-1/2 rounded-[18px] bg-white px-7 py-6 shadow-2xl">
         <button
           type="button"
           onClick={onCancel}
@@ -54,12 +54,12 @@ export default function ConfirmModal({
           aria-label="close"
           disabled={isLoading}
         >
-          <Image src="/icons/close.svg" alt="close" width={18} height={18} />
+          <Image src="/icons/close.svg" alt="close" width={16} height={16} />
         </button>
 
         <h3 className="text-[28px] font-extrabold text-gray-900">{title}</h3>
         {description && (
-          <p className="mt-3 text-[16px] text-gray-500">{description}</p>
+          <p className="mt-2 text-[16px] text-gray-500">{description}</p>
         )}
 
         <div className="mt-8 flex justify-end gap-4">
@@ -82,8 +82,8 @@ export default function ConfirmModal({
             disabled={isLoading}
             className={[
               "h-12 rounded-[12px] px-7 text-[16px] font-semibold",
-              "bg-red-500 text-white shadow-sm",
-              isLoading ? "opacity-60 cursor-not-allowed" : "hover:bg-red-600",
+              "bg-sub-red text-white shadow-sm",
+              isLoading ? "opacity-60 cursor-not-allowed" : "hover:bg-red-500",
             ].join(" ")}
           >
             {confirmText}

@@ -29,7 +29,7 @@ export default function ResumeUploadBox({
     <div
       className={[
         "rounded-[18px]",
-        "border-dash-custom  bg-white px-8 py-6",
+        "border-3 border-dotted border-gray-100 bg-white px-8 py-6",
       ].join(" ")}
     >
       <div className="text-[16px] font-semibold text-gray-900">{label}</div>
@@ -48,11 +48,17 @@ export default function ResumeUploadBox({
             </button>
 
             <button
-              onClick={() => {
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 onRemove();
                 if (inputRef.current) inputRef.current.value = "";
               }}
-              className="absolute -right-3 -top-2"
+              className="absolute -right-3 -top-2 z-10"
             >
               <Image
                 src="/icons/delete.svg"

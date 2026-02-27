@@ -74,7 +74,7 @@ export default function CanvasHeader({
           "after:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] after:content-['']",
         ].join(" ")}
       >
-        <div className="relative inline-flex items-center gap-2">
+        <div className="relative inline-flex items-center">
           <TabButton
             id="dashboard"
             label="대쉬 보드"

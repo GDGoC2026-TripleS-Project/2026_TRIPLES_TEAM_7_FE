@@ -3,8 +3,6 @@
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 
-import InfoIcon from "@/public/icons/info.svg?react";
-
 type Task = {
   id: string;
   text: string;
@@ -83,16 +81,15 @@ export default function ChecklistDetailToggle({
 
                 {sec.important && (
                   <span
-                    className={[
-                      "ml-1 inline-flex items-center",
-                      "text-red-400",
-                      "[&_svg_path]:stroke-current",
-                    ].join(" ")}
-                    aria-label="important"
-                    title="중요"
-                    onPointerDown={(e) => e.stopPropagation()} // 아이콘 클릭이 토글 버튼 클릭으로 튀는 거 방지
+                    className={["inline-flex items-center"].join(" ")}
+                    onPointerDown={(e) => e.stopPropagation()}
                   >
-                    <InfoIcon className="h-5 w-5" />
+                    <Image
+                      src="/icons/important.svg"
+                      alt="important"
+                      width={15}
+                      height={15}
+                    />
                   </span>
                 )}
               </div>

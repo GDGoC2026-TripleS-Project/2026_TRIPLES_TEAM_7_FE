@@ -3,13 +3,17 @@
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 
+export type MatchDetailLine = {
+  text: string;
+  required?: boolean;
+};
+
 export type MatchToggleItem = {
   id: string;
   label: string;
-  iconSrc: string; // 왼쪽 아이콘
-  details?: string[];
+  iconSrc: string;
+  details?: MatchDetailLine[];
   defaultOpen?: boolean;
-  rightIconSrc?: string;
 };
 
 type Props = {
@@ -84,15 +88,6 @@ export default function MatchDetailToggle({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {!!it.rightIconSrc && (
-                    <Image
-                      src={it.rightIconSrc}
-                      alt="info"
-                      width={16}
-                      height={16}
-                    />
-                  )}
-
                   <span
                     className={[
                       "inline-flex items-center justify-center",
@@ -119,7 +114,20 @@ export default function MatchDetailToggle({
                         key={`${it.id}-${idx}`}
                         className="rounded-[12px] border border-black/10 bg-white px-4 py-3 text-[14px] text-gray-700"
                       >
-                        {line}
+                        <div className="flex items-center gap-2">
+                          <span className="leading-5">{line.text}</span>
+
+                          {line.required && (
+                            <span className="inline-flex shrink-0">
+                              <Image
+                                src="/icons/important.svg"
+                                alt="important"
+                                width={13}
+                                height={13}
+                              />
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (

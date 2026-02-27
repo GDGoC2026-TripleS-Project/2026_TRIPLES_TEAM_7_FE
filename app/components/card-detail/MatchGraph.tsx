@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import InfoIcon from "@/public/icons/info.svg?react";
+import InfoTooltip from "./InfoTooltip";
+import Image from "next/image";
 
 type Props = {
-  /** 0~100 */
   rate: number;
   title: string;
   subtitle?: string;
@@ -13,62 +13,107 @@ type Props = {
 
 export default function MatchGraph({ rate, title, subtitle }: Props) {
   const safeRate = Math.max(0, Math.min(100, rate));
-  const label = `${safeRate}%`;
+  const [openInfo, setOpenInfo] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   return (
-    <section
-      className={[
-        "rounded-2xl bg-white",
-        "border border-black/5",
-        "px-5 py-5",
-      ].join(" ")}
-    >
+    <section className="rounded-2xl bg-white border border-black/5 px-5 py-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-[18px] font-semibold text-gray-900 whitespace-pre-line">
             {title}
           </h3>
           {subtitle && (
-            <p className="mt-2 text-[14px] text-gray-500">{subtitle}</p>
+            <p className="mt-2 text-[14px] text-gray-700">{subtitle}</p>
           )}
         </div>
 
         <button
-          className={["[&_svg_path]:stroke-current", "text-gray-300"].join(" ")}
+          ref={setAnchorEl}
+          type="button"
+          onClick={() => setOpenInfo((v) => !v)}
+          className="text-gray-500 [&_svg_*]:fill-current"
         >
-          <InfoIcon width={18} height={18} />
+          <InfoIcon className="h-6 w-6" />
         </button>
+
+        <InfoTooltip
+          open={openInfo}
+          onClose={() => setOpenInfo(false)}
+          anchorEl={anchorEl}
+          offsetX={41} // 원하는 만큼 조절
+          offsetY={-15}
+        >
+          <div>공고의 요구조건을 필수, 권장, 조직 적합도의 키워드로</div>
+          <div>분해하여, 이력서에 기재된 내용을 바탕으로 준비도를 분석하고</div>
+          <div>매칭 점수를 계산합니다.</div>
+        </InfoTooltip>
       </div>
 
       <div className="mt-5">
-        <GaugeSemiCircle value={safeRate} label={label} />
+        <GaugeSemiCircle value={safeRate} />
       </div>
     </section>
   );
 }
 
-/**
- * 반원 게이지 (SVG)
- * - 바탕(남은 구간): 진한 회색
- * - 진행(매치율): 그린
- * - 은은한 글로우(연한 민트): 아래에 한 겹
- * - 내부 점선(민트): 장식
- */
-function GaugeSemiCircle({ value, label }: { value: number; label: string }) {
-  // 반원 path 길이 계산용 (r=78 기준)
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function GaugeSemiCircle({ value }: { value: number }) {
   const r = 78;
   const cx = 100;
   const cy = 92;
 
   const d = useMemo(() => {
-    // 위쪽 반원: left -> right
-    // M (cx-r, cy) A r r 0 0 1 (cx+r, cy)
     return `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
   }, []);
 
-  // 반원 길이 = πr
   const arcLen = Math.PI * r;
-  const dashOffset = arcLen * (1 - value / 100);
+
+  const [animatedValue, setAnimatedValue] = useState(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const DURATION_MS = 900;
+
+    let startTs = 0;
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    const tick = (ts: number) => {
+      if (!startTs) startTs = ts;
+
+      const elapsed = ts - startTs;
+      const t = clamp(elapsed / DURATION_MS, 0, 1);
+      const eased = easeOutCubic(t);
+
+      const next = value * eased;
+      setAnimatedValue(next);
+
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame((ts) => {
+      setAnimatedValue(0);
+      rafRef.current = requestAnimationFrame(tick);
+    });
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [value]);
+
+  const dashOffset = arcLen * (1 - animatedValue / 100);
+  const label = `${Math.round(animatedValue)}%`;
 
   return (
     <div className="mx-auto w-[360px] max-w-full">
@@ -95,19 +140,29 @@ function GaugeSemiCircle({ value, label }: { value: number; label: string }) {
 
         {/* 내부 점선 장식 */}
         <path
-          d={`M ${cx - 60} ${cy} A 56 56 0 0 1 ${cx + 60} ${cy}`}
+          d={`M ${cx - 62} ${cy} A 56 56 0 0 1 ${cx + 62} ${cy}`}
           fill="none"
           stroke="rgb(0, 201, 167)"
           strokeWidth="2"
           strokeLinecap="round"
-          strokeDasharray="7 16"
+          strokeDasharray="7 14"
+        />
+
+        {/* 작은 아이콘 */}
+        <image
+          href="/icons/graph.svg"
+          x={cx - 10}
+          y={cy - 44}
+          width={18}
+          height={18}
+          preserveAspectRatio="xMidYMid meet"
         />
 
         {/* 중앙 텍스트 */}
-        <g transform="translate(100 78)">
+        <g transform={`translate(${cx} 78)`}>
           <text
             x="4"
-            y="6"
+            y="10"
             textAnchor="middle"
             className="fill-[#00C9A7] font-semibold"
             fontSize="18"
@@ -116,7 +171,6 @@ function GaugeSemiCircle({ value, label }: { value: number; label: string }) {
           </text>
         </g>
 
-        {/* 0% / 100% 라벨 */}
         <text
           x="15"
           y="115"

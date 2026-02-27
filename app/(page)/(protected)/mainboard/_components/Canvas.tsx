@@ -189,7 +189,6 @@ function CanvasInner(props: {
 
   updatePos: ReturnType<typeof useUpdateCanvasCardPosition>;
   onCardClick?: (card: BoardCard) => void;
-  onCardContextMenu?: (args: { card: BoardCard; rect: DOMRect }) => void;
 
   renderBoardExtras?: (args: {
     ctx: RenderCtx;
@@ -209,7 +208,6 @@ function CanvasInner(props: {
     setCards,
     updatePos,
     onCardClick,
-    onCardContextMenu,
     renderBoardExtras,
     contextCardId,
   } = props;
@@ -243,7 +241,7 @@ function CanvasInner(props: {
         const isContext = contextCardId === c.id;
 
         const dimOthers = !!activeCardId; // 패널 열렸을 때만 dim 처리
-        const dimClass = dimOthers && !isActive ? "opacity-35" : "opacity-100";
+        const dimClass = dimOthers && !isActive ? "opacity-70" : "opacity-100";
 
         return (
           <DraggableJobCard
@@ -254,6 +252,7 @@ function CanvasInner(props: {
             data={c.data}
             scale={scale}
             setGesturesBlocked={setGesturesBlocked}
+            gesturesLocked={gesturesLocked}
             onMove={(id, nextX, nextY) => {
               setCards((prev) =>
                 prev.map((p) =>
@@ -276,15 +275,16 @@ function CanvasInner(props: {
                 },
               );
             }}
-            onClick={() => onCardClick?.(c)}
-            onContextMenu={(rect) => onCardContextMenu?.({ card: c, rect })}
+            onClick={(id) => {
+              const found = cards.find((cc) => cc.id === id);
+              if (found) onCardClick?.(found);
+            }}
             className={[
               "transition-opacity duration-150",
               dimClass,
               isContext ? "z-[121]" : isActive ? "z-[90]" : "z-[10]",
             ].join(" ")}
             isActive={isActive}
-            gesturesLocked={gesturesLocked}
           />
         );
       })}
@@ -301,7 +301,6 @@ export default function Canvas({
   activeCardId,
   dimWhenActive = true,
   onCardClick,
-  onCardContextMenu,
   renderBoardExtras,
   renderFixedOverlays,
   contextCardId = null,
@@ -386,7 +385,6 @@ export default function Canvas({
             setCards={setCards}
             updatePos={updatePos}
             onCardClick={onCardClick}
-            onCardContextMenu={onCardContextMenu}
             renderBoardExtras={renderBoardExtras}
             contextCardId={contextCardId}
           />

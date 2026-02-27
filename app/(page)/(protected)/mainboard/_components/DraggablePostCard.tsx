@@ -26,7 +26,6 @@ type Props = {
   }) => void;
 
   onClick?: (id: string) => void;
-  onContextMenu?: (rect: DOMRect) => void;
   className?: string;
 };
 
@@ -46,7 +45,6 @@ export default function DraggableJobCard({
   onMove,
   onDrop,
   onClick,
-  onContextMenu,
   className = "",
   isActive = false,
 }: Props) {
@@ -59,107 +57,91 @@ export default function DraggableJobCard({
     y: safeNum(y),
   });
   const movedRef = useRef(false);
+  const elementRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     posRef.current = { x: safeNum(x), y: safeNum(y) };
   }, [x, y]);
 
-  const safeX = safeNum(x);
-  const safeY = safeNum(y);
+  const allowInteract = !gesturesLocked || isActive;
 
   return (
     <div
+      ref={elementRef}
       data-board-card="true"
       data-card-id={id}
       className={["absolute", "select-none", className].join(" ")}
       style={{
-        left: safeX,
-        top: safeY,
-        cursor: gesturesLocked ? "default" : isDragging ? "grabbing" : "grab",
+        left: x,
+        top: y,
+        cursor: allowInteract ? (isDragging ? "grabbing" : "grab") : "default",
         userSelect: "none",
         touchAction: "none",
       }}
-      onContextMenu={(e) => {
-        if (gesturesLocked) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const rect = (
-          e.currentTarget as HTMLDivElement
-        ).getBoundingClientRect();
-        onContextMenu?.(rect);
-      }}
       onPointerDown={(e) => {
-        if (gesturesLocked) return;
+        if (!allowInteract) return;
 
         e.stopPropagation();
         e.preventDefault();
 
-        (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
-        setIsDragging(true);
-
-        movedRef.current = false;
         startPointerRef.current = { x: e.clientX, y: e.clientY };
         startPosRef.current = { x: posRef.current.x, y: posRef.current.y };
-
-        setGesturesBlocked(true);
+        movedRef.current = false;
       }}
       onPointerMove={(e) => {
+        if (!startPointerRef.current) return;
+
+        const dx = e.clientX - startPointerRef.current.x;
+        const dy = e.clientY - startPointerRef.current.y;
+
+        const distance = Math.abs(dx) + Math.abs(dy);
+
+        if (!isDragging && distance > 4) {
+          setIsDragging(true);
+          movedRef.current = true;
+          elementRef.current?.setPointerCapture(e.pointerId);
+          setGesturesBlocked(true);
+        }
+
         if (!isDragging) return;
 
         const s = safeNum(scale, 1);
-        if (s === 0) return;
 
-        e.preventDefault();
+        const nextX = startPosRef.current!.x + dx / s;
+        const nextY = startPosRef.current!.y + dy / s;
 
-        const sp = startPointerRef.current;
-        if (sp) {
-          const dx = Math.abs(e.clientX - sp.x);
-          const dy = Math.abs(e.clientY - sp.y);
-          if (dx + dy > 4) movedRef.current = true;
-        }
+        posRef.current = { x: nextX, y: nextY };
+        onMove(id, nextX, nextY);
 
-        const nextX = posRef.current.x + e.movementX / s;
-        const nextY = posRef.current.y + e.movementY / s;
-
-        const nx = safeNum(nextX, posRef.current.x);
-        const ny = safeNum(nextY, posRef.current.y);
-
-        posRef.current = { x: nx, y: ny };
-        onMove(id, nx, ny);
+        window.dispatchEvent(new Event("canvas:transform"));
       }}
       onPointerUp={(e) => {
-        if (gesturesLocked) return;
-
-        e.stopPropagation();
-        setIsDragging(false);
-        setGesturesBlocked(false);
-
-        try {
-          (e.currentTarget as HTMLDivElement).releasePointerCapture(
-            e.pointerId,
-          );
-        } catch {}
-
-        if (movedRef.current) {
-          const prev = startPosRef.current;
-          const next = posRef.current;
-          if (prev) {
-            onDrop?.({
-              id,
-              prevX: prev.x,
-              prevY: prev.y,
-              nextX: next.x,
-              nextY: next.y,
-            });
-          }
-          return;
+        if (isDragging) {
+          elementRef.current?.releasePointerCapture(e.pointerId);
+          setGesturesBlocked(false);
         }
 
-        onClick?.(id);
+        if (!movedRef.current) {
+          onClick?.(id);
+        } else {
+          const prev = startPosRef.current!;
+          const next = posRef.current;
+
+          onDrop?.({
+            id,
+            prevX: prev.x,
+            prevY: prev.y,
+            nextX: next.x,
+            nextY: next.y,
+          });
+        }
+
+        setIsDragging(false);
+        startPointerRef.current = null;
       }}
       onPointerCancel={() => {
-        if (gesturesLocked) return;
         setIsDragging(false);
+        startPointerRef.current = null;
         setGesturesBlocked(false);
       }}
     >
