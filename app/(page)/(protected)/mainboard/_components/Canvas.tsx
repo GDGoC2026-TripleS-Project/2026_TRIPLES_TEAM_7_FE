@@ -195,6 +195,7 @@ function CanvasInner(props: {
     cards: BoardCard[];
   }) => React.ReactNode;
   contextCardId?: string | null;
+  onCardContextMenu?: (args: { card: BoardCard; rect: DOMRect }) => void;
 }) {
   const {
     scale,
@@ -210,6 +211,7 @@ function CanvasInner(props: {
     onCardClick,
     renderBoardExtras,
     contextCardId,
+    onCardContextMenu,
   } = props;
 
   useEffect(() => {
@@ -285,6 +287,11 @@ function CanvasInner(props: {
               isContext ? "z-[121]" : isActive ? "z-[90]" : "z-[10]",
             ].join(" ")}
             isActive={isActive}
+            onContextMenu={({ id, rect }) => {
+              const found = cards.find((cc) => cc.id === id);
+              if (!found) return;
+              onCardContextMenu?.({ card: found, rect });
+            }}
           />
         );
       })}
@@ -305,6 +312,7 @@ export default function Canvas({
   renderFixedOverlays,
   contextCardId = null,
   gesturesLocked = false,
+  onCardContextMenu,
 }: Props) {
   const { data: apiCards, isLoading } = useCanvasCards();
   const updatePos = useUpdateCanvasCardPosition();
@@ -387,6 +395,7 @@ export default function Canvas({
             onCardClick={onCardClick}
             renderBoardExtras={renderBoardExtras}
             contextCardId={contextCardId}
+            onCardContextMenu={onCardContextMenu}
           />
         )}
       </InfiniteCanvas>

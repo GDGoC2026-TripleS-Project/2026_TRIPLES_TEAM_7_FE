@@ -69,19 +69,39 @@ export default function DashboardPage() {
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, [openCardId]);
 
+  const getCardRect = (cardId: string) => {
+    const el = document.querySelector(
+      `[data-board-card="true"][data-card-id="${cardId}"]`,
+    ) as HTMLElement | null;
+
+    return el?.getBoundingClientRect() ?? null;
+  };
+
   useEffect(() => {
     if (!deleteMenu) return;
 
-    const close = () => setDeleteMenu(null);
+    const updateRect = () => {
+      const r = getCardRect(deleteMenu.cardId);
+      if (!r) return;
 
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
+      setDeleteMenu((prev) =>
+        prev && prev.cardId === deleteMenu.cardId ? { ...prev, rect: r } : prev,
+      );
+    };
+
+    updateRect();
+
+    window.addEventListener("canvas:transform", updateRect);
+
+    window.addEventListener("resize", updateRect);
+    window.addEventListener("scroll", updateRect, true);
 
     return () => {
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
+      window.removeEventListener("canvas:transform", updateRect);
+      window.removeEventListener("resize", updateRect);
+      window.removeEventListener("scroll", updateRect, true);
     };
-  }, [deleteMenu]);
+  }, [deleteMenu?.cardId]);
 
   const drawerOpen = !!openCardId && !deleteMenu && !confirmOpen;
 
@@ -110,20 +130,77 @@ export default function DashboardPage() {
           setOpenCardId(null);
           setSelectedJob(null);
         }}
-        renderBoardExtras={() => (
+        gesturesLocked={!!deleteMenu || confirmOpen}
+        // ❌ 여기(renderBoardExtras)에서는 더 이상 딤/버튼 렌더링하지 않음
+        renderBoardExtras={() => null}
+        // ✅ 뷰포트 fixed 오버레이는 여기에서
+        renderFixedOverlays={() => (
           <>
+            {/* 기존 드로어 */}
+            <JobPostDetailDrawer
+              open={drawerOpen}
+              onClose={() => {
+                setOpenCardId(null);
+                setSelectedJob(null);
+              }}
+              job={selectedJob}
+              showOverlay={false}
+            />
+
+            {/* ✅ 삭제 딤 + 버튼 */}
             {deleteMenu && (
               <>
-                {/* ✅ 보드 세계 내부 딤(absolute) */}
-                <div
-                  className="absolute inset-0 z-[110] bg-black/30 pointer-events-auto"
+                {/* ✅ 둥근 구멍 뚫린 딤 오버레이 (카드 rounded에 맞춤) */}
+                <svg
+                  className="fixed inset-0 z-[120] pointer-events-auto"
+                  width="100%"
+                  height="100%"
                   onPointerDown={() => setDeleteMenu(null)}
-                />
+                >
+                  <defs>
+                    <mask id="hole-mask">
+                      {/* 전체는 보이게(white) */}
+                      <rect width="100%" height="100%" fill="white" />
 
-                {/* ✅ 버튼은 viewport 기준이니까 fixed 유지 */}
+                      {/* 구멍 부분은 안 보이게(black) */}
+                      {(() => {
+                        const r = deleteMenu.rect;
+
+                        const pad = 1; // 카드 그림자/링 여유
+                        const x = Math.max(0, r.left - pad);
+                        const y = Math.max(0, r.top - pad);
+                        const w = Math.max(0, r.width + pad * 2);
+                        const h = Math.max(0, r.height + pad * 2);
+
+                        const radius = 10; // ✅ 카드 rounded 정도로 맞추기 (예: rounded-[18px])
+                        return (
+                          <rect
+                            x={x}
+                            y={y}
+                            width={w}
+                            height={h}
+                            rx={radius}
+                            ry={radius}
+                            fill="black"
+                          />
+                        );
+                      })()}
+                    </mask>
+                  </defs>
+
+                  {/* dim 레이어 */}
+                  <rect
+                    width="100%"
+                    height="100%"
+                    fill="rgba(0,0,0,0.30)"
+                    mask="url(#hole-mask)"
+                  />
+                </svg>
+
+                {/* ✅ 삭제 버튼 */}
                 <button
                   type="button"
-                  className="fixed z-[130] h-10 rounded-[10px] px-6 bg-red-500 text-white font-semibold shadow-lg hover:bg-red-600"
+                  className="fixed z-[130] h-10 rounded-[10px] px-6 bg-sub-red text-white font-semibold shadow-lg hover:bg-red-500"
                   style={deleteButtonStyle ?? undefined}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => setConfirmOpen(true)}
@@ -133,17 +210,6 @@ export default function DashboardPage() {
               </>
             )}
           </>
-        )}
-        renderFixedOverlays={() => (
-          <JobPostDetailDrawer
-            open={drawerOpen}
-            onClose={() => {
-              setOpenCardId(null);
-              setSelectedJob(null);
-            }}
-            job={selectedJob}
-            showOverlay={false}
-          />
         )}
         contextCardId={deleteMenu?.cardId ?? null}
       />

@@ -27,6 +27,7 @@ type Props = {
 
   onClick?: (id: string) => void;
   className?: string;
+  onContextMenu?: (args: { id: string; rect: DOMRect }) => void;
 };
 
 function safeNum(n: any, fallback = 0) {
@@ -47,6 +48,7 @@ export default function DraggableJobCard({
   onClick,
   className = "",
   isActive = false,
+  onContextMenu,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -78,8 +80,20 @@ export default function DraggableJobCard({
         userSelect: "none",
         touchAction: "none",
       }}
+      onContextMenu={(e) => {
+        if (!allowInteract) return;
+
+        e.preventDefault(); // 브라우저 기본 메뉴 막기
+        e.stopPropagation(); // 캔버스 쪽으로 전파 막기
+
+        const rect = elementRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        onContextMenu?.({ id, rect });
+      }}
       onPointerDown={(e) => {
         if (!allowInteract) return;
+        if (e.button !== 0) return;
 
         e.stopPropagation();
         e.preventDefault();

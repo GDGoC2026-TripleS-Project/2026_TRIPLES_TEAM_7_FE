@@ -65,7 +65,7 @@ export default function SettingsPage() {
         ? {
             title: "계정을 탈퇴하시겠어요?",
             description:
-              "탈퇴하면 PIEC에 저장된 프로필 정보와 첨부 자료가 모두 삭제됩니다. Google 계정은 삭제되지 않아요. *이 작업은 되돌릴 수 없어요..",
+              "탈퇴하면 PIEC에 저장된 프로필 정보와 첨부 자료가 모두 삭제됩니다. Google 계정은 삭제되지 않아요",
             cancelText: "계정 유지하기",
             confirmText: "탈퇴하기",
             onConfirm: handleConfirmWithdraw,

@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import InfoIcon from "@/public/icons/info.svg?react";
 import InfoTooltip from "./InfoTooltip";
-import Image from "next/image";
 
 type Props = {
   rate: number;
@@ -101,7 +100,7 @@ function GaugeSemiCircle({ value }: { value: number }) {
       }
     };
 
-    rafRef.current = requestAnimationFrame((ts) => {
+    rafRef.current = requestAnimationFrame(() => {
       setAnimatedValue(0);
       rafRef.current = requestAnimationFrame(tick);
     });
